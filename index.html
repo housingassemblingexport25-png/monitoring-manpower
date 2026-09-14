@@ -654,15 +654,17 @@
 
         function getAttScore(attendance) { return attendance === 'Hadir' ? 3 : -2; }
 
-        async function loadCloudData() {
+async function loadCloudData() {
             try {
                 let response = await fetch(CLOUD_API_URL + "?action=getData");
                 let result = await response.json();
+                
                 manpowers = result.manpowers || [];
                 evaluations = result.evaluations || [];
                 accounts = result.accounts || [];
                 
-                if (accounts.length === 0) {
+                // Fallback akun bawaan jika cloud kosong
+                if (!accounts || accounts.length === 0) {
                     accounts = [
                         { username: 'admin', pass: 'admin123', role: 'admin', line: '', name: 'Administrator' },
                         { username: 'line1', pass: 'line123', role: 'user', line: 'Line 1', name: 'User Line 1' },
@@ -673,19 +675,17 @@
                     ];
                 }
 
-                if (currentUser) {
-                    let updatedUser = accounts.find(a => a.username === currentUser.username);
-                    if (updatedUser) currentUser = updatedUser;
-                }
-
-                if (manpowers.length === 0 && evaluations.length === 0) {
-                    initSampleData();
-                } else {
-                    refreshAllUI();
-                    if (currentUser && currentUser.role === 'admin') renderAccountsTable();
-                }
+                console.log("Data Berhasil Dimuat:", { accounts, manpowers, evaluations });
             } catch (err) {
-                console.error("Gagal memuat data dari cloud:", err);
+                console.error("Gagal memuat data dari cloud, menggunakan akun cadangan:", err);
+                accounts = [
+                    { username: 'admin', pass: 'admin123', role: 'admin', line: '', name: 'Administrator' },
+                    { username: 'line1', pass: 'line123', role: 'user', line: 'Line 1', name: 'User Line 1' },
+                    { username: 'line2', pass: 'line123', role: 'user', line: 'Line 2', name: 'User Line 2' },
+                    { username: 'line3', pass: 'line123', role: 'user', line: 'Line 3', name: 'User Line 3' },
+                    { username: 'line4', pass: 'line123', role: 'user', line: 'Line 4', name: 'User Line 4' },
+                    { username: 'line5', pass: 'line123', role: 'user', line: 'Line 5', name: 'User Line 5' }
+                ];
             }
         }
 
@@ -723,21 +723,19 @@
             }
         }
 
-        function handleLogin(e) {
+     async function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.trim().toLowerCase();
             const p = document.getElementById('loginPass').value.trim();
             const errDiv = document.getElementById('loginError');
 
-            console.log("Data akun saat ini:", accounts); // Untuk dicek di Console browser (F12)
-
+            // Pastikan data dimuat jika variabel accounts masih kosong
             if (!accounts || accounts.length === 0) {
-                errDiv.innerText = "Database akun belum dimuat. Harap refresh halaman (Ctrl+F5).";
-                errDiv.classList.remove('hidden');
-                return;
+                await loadCloudData();
             }
 
             const found = accounts.find(acc => acc.username.trim().toLowerCase() === u && acc.pass.trim() === p);
+            
             if (found) {
                 currentUser = found;
                 localStorage.setItem('mp_current_user', JSON.stringify(currentUser));
