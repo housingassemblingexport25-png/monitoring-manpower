@@ -654,7 +654,7 @@
 
         function getAttScore(attendance) { return attendance === 'Hadir' ? 3 : -2; }
 
-async function loadCloudData() {
+        async function loadCloudData() {
             try {
                 let response = await fetch(CLOUD_API_URL + "?action=getData");
                 let result = await response.json();
@@ -683,6 +683,30 @@ async function loadCloudData() {
                     { username: 'line4', pass: 'line123', role: 'user', line: 'Line 4', name: 'User Line 4' },
                     { username: 'line5', pass: 'line123', role: 'user', line: 'Line 5', name: 'User Line 5' }
                 ];
+            }
+        }
+
+        async function saveData() {
+            let payload = {
+                manpowers: manpowers,
+                evaluations: evaluations,
+                accounts: accounts
+            };
+
+            try {
+                let response = await fetch(CLOUD_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Mencegah preflight CORS error di Apps Script
+                    body: JSON.stringify(payload)
+                });
+                let result = await response.json();
+                if (result.success) {
+                    console.log("Sukses Simpan ke Cloud:", result.message);
+                } else {
+                    console.error("Gagal dari Server:", result.error);
+                }
+            } catch (err) {
+                console.error("Gagal menyinkronkan data ke cloud:", err);
             }
         }
 
@@ -1641,67 +1665,6 @@ async function loadCloudData() {
                 data: { labels: allDates, datasets: datasets },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: -2, max: 4, ticks: { stepSize: 1 } } } }
             });
-        }
-
-        function initSampleData() {
-            manpowers = [
-                { id: 'MP1', nik: '1001', name: 'Budi Santoso', process: 'Welding', line: 'Line 1', customer: 'Toyota', shift: 'Shift A', entryDate: '2026-05-01' },
-                { id: 'MP2', nik: '1002', name: 'Ahmad Faisal', process: 'Painting', line: 'Line 2', customer: 'Honda', shift: 'Shift B', entryDate: '2026-05-01' },
-                { id: 'MP3', nik: '1003', name: 'Siti Aminah', process: 'Assembly', line: 'Line 3', customer: 'Suzuki', shift: 'Shift A', entryDate: '2026-05-15' },
-                { id: 'MP4', nik: '1004', name: 'Joko Widodo', process: 'Checking', line: 'Line 4', customer: 'Yamaha', shift: 'Shift B', entryDate: '2026-06-01' },
-                { id: 'MP5', nik: '1005', name: 'Dewi Sartika', process: 'Packing', line: 'Line 5', customer: 'Daihatsu', shift: 'Non Shift', entryDate: '2026-06-15' }
-            ];
-
-            evaluations = [];
-            const today = new Date();
-            
-            for (let i = 120; i >= 0; i--) {
-                let d = new Date(today);
-                d.setDate(d.getDate() - i);
-                
-                if (d.getDay() === 0) continue; 
-
-                let dateStr = d.toISOString().split('T')[0];
-                let progressFactor = (120 - i) / 120;
-
-                manpowers.forEach((mp, index) => {
-                    let isPresent = Math.random() > 0.08; 
-                    
-                    if (isPresent) {
-                        let baseVal = 2 + Math.floor(progressFactor * 2) + (index % 2);
-                        let skillVal = Math.min(4, Math.max(1, baseVal));
-                        let prodVal = Math.min(4, Math.max(1, baseVal - (Math.random() > 0.7 ? 1 : 0)));
-                        let qualVal = Math.min(4, Math.max(1, baseVal));
-
-                        evaluations.push({
-                            id: `EV_${dateStr}_${mp.id}`,
-                            date: dateStr,
-                            name: mp.name,
-                            process: mp.process,
-                            attendance: 'Hadir',
-                            skill: skillVal,
-                            prod: prodVal,
-                            qual: qualVal,
-                            note: skillVal >= 3 ? 'Mandiri dan sesuai SOP' : 'Perlu pendampingan',
-                            mentor: `Mentor ${mp.line}`
-                        });
-                    } else {
-                        evaluations.push({
-                            id: `EV_${dateStr}_${mp.id}`,
-                            date: dateStr,
-                            name: mp.name,
-                            process: mp.process,
-                            attendance: 'Tidak Hadir',
-                            skill: 0,
-                            prod: 0,
-                            qual: 0,
-                            note: 'Izin / Sakit',
-                            mentor: `Mentor ${mp.line}`
-                        });
-                    }
-                });
-            }
-            saveData();
         }
     </script>
 </body>
