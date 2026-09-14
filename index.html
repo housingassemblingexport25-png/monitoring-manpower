@@ -663,7 +663,6 @@ async function loadCloudData() {
                 evaluations = result.evaluations || [];
                 accounts = result.accounts || [];
                 
-                // Fallback akun bawaan jika cloud kosong
                 if (!accounts || accounts.length === 0) {
                     accounts = [
                         { username: 'admin', pass: 'admin123', role: 'admin', line: '', name: 'Administrator' },
@@ -674,10 +673,8 @@ async function loadCloudData() {
                         { username: 'line5', pass: 'line123', role: 'user', line: 'Line 5', name: 'User Line 5' }
                     ];
                 }
-
-                console.log("Data Berhasil Dimuat:", { accounts, manpowers, evaluations });
             } catch (err) {
-                console.error("Gagal memuat data dari cloud, menggunakan akun cadangan:", err);
+                console.error("Gagal memuat data dari cloud:", err);
                 accounts = [
                     { username: 'admin', pass: 'admin123', role: 'admin', line: '', name: 'Administrator' },
                     { username: 'line1', pass: 'line123', role: 'user', line: 'Line 1', name: 'User Line 1' },
@@ -689,41 +686,7 @@ async function loadCloudData() {
             }
         }
 
-        async function saveData() {
-            let payload = {
-                manpowers: manpowers,
-                evaluations: evaluations,
-                accounts: accounts
-            };
-
-            try {
-                let response = await fetch(CLOUD_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                let result = await response.json();
-                if(result.success) {
-                    console.log("Data berhasil disinkronkan ke Cloud Spreadsheet.");
-                }
-            } catch (err) {
-                console.error("Gagal menyimpan ke cloud:", err);
-            }
-        }
-
-            try {
-                await fetch(CLOUD_API_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                setTimeout(loadCloudData, 1500);
-            } catch (err) {
-                console.error("Gagal menyimpan ke cloud:", err);
-            }
-        }
-
-async function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.trim().toLowerCase();
             const p = document.getElementById('loginPass').value.trim();
