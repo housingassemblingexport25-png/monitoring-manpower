@@ -697,6 +697,20 @@
             };
 
             try {
+                let response = await fetch(CLOUD_API_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                let result = await response.json();
+                if(result.success) {
+                    console.log("Data berhasil disinkronkan ke Cloud Spreadsheet.");
+                }
+            } catch (err) {
+                console.error("Gagal menyimpan ke cloud:", err);
+            }
+        }
+
+            try {
                 await fetch(CLOUD_API_URL, {
                     method: "POST",
                     mode: "no-cors",
