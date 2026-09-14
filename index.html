@@ -466,13 +466,22 @@
 
                 <!-- Tabel Manpower -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
-                        <h2 class="font-bold text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i> Master Data Manpower</h2>
-                        <button onclick="exportTableToExcel('tableManpower', 'Master_Data_Manpower', 'MASTER DATA MANPOWER')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
-                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
-                        </button>
-                    </div>
-                    <div class="overflow-x-auto">
+    <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <h2 class="font-bold text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i> Master Data Manpower</h2>
+        
+        <!-- Grup Tombol Aksi (Tampil untuk Admin & User Line) -->
+        <div class="flex items-center space-x-2">
+            <!-- Tombol Tambah Manpower Ekstra -->
+            <button onclick="openManpowerModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                <i class="fas fa-plus mr-1.5"></i> Add Manpower
+            </button>
+            
+            <button onclick="exportTableToExcel('tableManpower', 'Master_Data_Manpower', 'MASTER DATA MANPOWER')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+            </button>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
                         <table id="tableManpower" class="w-full text-sm text-left">
                             <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
                                 <tr>
