@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Monitoring New Manpower</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .hidden-radio { display: none; }
+        .btn-radio {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            text-align: center;
+            height: 100%;
+            background-color: white;
+            color: #374151;
+        }
+        .btn-radio:hover { background-color: #f3f4f6; }
+        .skill-radio:checked + .btn-radio { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .prod-radio:checked + .btn-radio { background-color: #8b5cf6; color: white; border-color: #8b5cf6; }
+        .qual-radio:checked + .btn-radio { background-color: #f59e0b; color: white; border-color: #f59e0b; }
+        .att-hadir:checked + .btn-radio { background-color: #10b981; color: white; border-color: #10b981; }
+        .att-tidak:checked + .btn-radio { background-color: #ef4444; color: white; border-color: #ef4444; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-900">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <div class="inline-block bg-blue-600 p-3 rounded-xl text-white shadow-lg mb-3">
+                    <i class="fas fa-users-cog text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Login Monitoring Manpower</h2>
+                <p class="text-sm text-gray-500 mt-1">Silakan masuk menggunakan akun Anda</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fas fa-user"></i></span>
+                        <input type="text" id="loginUser" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Masukkan username...">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="loginPass" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Masukkan password...">
+                    </div>
+                </div>
+                <div id="loginError" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"></div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-md">Masuk Sistem</button>
+            </form>
+
+            <div class="mt-6 border-t pt-4 text-xs text-gray-500 space-y-1">
+                <p class="font-semibold text-gray-700 mb-1">Daftar Akun Bawaan:</p>
+                <p>• <b>Admin:</b> admin / admin123</p>
+                <p>• <b>Line 1-5:</b> line1 / line123 s.d. line5 / line123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="appContainer" class="hidden">
+        <div id="messageBox" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform scale-95 transition-transform">
+                <h3 id="msgTitle" class="text-lg font-bold mb-2">Pesan</h3>
+                <p id="msgText" class="text-gray-600 mb-6"></p>
+                <div class="flex justify-end space-x-3">
+                    <button id="msgCancelBtn" class="hidden px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Batal</button>
+                    <button id="msgOkBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <header class="bg-white shadow-sm sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2 rounded-lg text-white">
+                        <i class="fas fa-users-cog text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Monitoring New Manpower</h1>
+                        <p id="userSessionBadge" class="text-xs text-gray-500 font-medium"></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="btnAddManpowerHeader" onclick="openManpowerModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition shadow-sm flex items-center text-sm">
+                        <i class="fas fa-plus mr-2"></i> Add Manpower
+                    </button>
+                    <button onclick="handleLogout()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg font-medium transition flex items-center text-sm border">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            
+            <!-- SECTION KHUSUS ADMIN: MANAJEMEN AKUN PENGGUNA -->
+            <section id="adminAccountSection" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <h2 class="font-bold text-gray-800 flex items-center"><i class="fas fa-user-shield mr-2 text-blue-500"></i> Manajemen Akun Pengguna (Admin Only)</h2>
+                    <button onclick="openAccountModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                        <i class="fas fa-user-plus mr-1.5"></i> Tambah Akun Baru
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
+                            <tr>
+                                <th class="px-4 py-3">Username</th>
+                                <th class="px-4 py-3">Nama Lengkap</th>
+                                <th class="px-4 py-3">Role / Hak Akses</th>
+                                <th class="px-4 py-3">Line Terkait</th>
+                                <th class="px-4 py-3 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Form Evaluasi Harian -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                <div class="flex justify-between items-center border-b pb-3 mb-5">
+                    <h2 class="text-lg font-bold flex items-center"><i class="fas fa-clipboard-check mr-2 text-blue-500"></i> Form Evaluasi Harian</h2>
+                    <span id="evalFormMode" class="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded uppercase">Mode Input Baru</span>
+                </div>
+                
+                <form id="evaluationForm" onsubmit="handleEvaluationSubmit(event)">
+                    <input type="hidden" id="evalId" value="">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tanggal <span class="text-red-500">*</span></label>
+                            <input type="date" id="evalDate" required class="w-full border rounded-lg p-2.5 focus:ring focus:ring-blue-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Nama Manpower <span class="text-red-500">*</span></label>
+                            <select id="evalNameSelect" required class="w-full border rounded-lg p-2.5 focus:ring focus:ring-blue-200" onchange="autoFillProcess()">
+                                <option value="">-- Pilih Manpower --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Proses</label>
+                            <input type="text" id="evalProcess" class="w-full border rounded-lg p-2.5 bg-gray-50" readonly placeholder="Auto dari master">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Absensi <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-2 gap-2 h-11">
+                                <div>
+                                    <input type="radio" name="evalAttendance" id="attHadir" value="Hadir" class="hidden-radio att-radio att-hadir" checked onchange="toggleEvalInputs(true)">
+                                    <label for="attHadir" class="btn-radio font-medium"><i class="fas fa-check-circle mr-1"></i> Hadir (3)</label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalAttendance" id="attTidak" value="Tidak Hadir" class="hidden-radio att-radio att-tidak" onchange="toggleEvalInputs(false)">
+                                    <label for="attTidak" class="btn-radio font-medium"><i class="fas fa-times-circle mr-1"></i> Tidak (-2)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="evaluationMetrics" class="space-y-5 border rounded-lg p-5 bg-gray-50 mb-6">
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">Skill / Keterampilan <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" name="evalSkill" id="skill1" value="1" class="hidden-radio skill-radio" required>
+                                    <label for="skill1" class="btn-radio text-xs flex-col px-2">
+                                        <span class="text-lg font-bold block mb-1">1</span>
+                                        <span>Belum Mampu/Sangat Perlu Pendampingan</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalSkill" id="skill2" value="2" class="hidden-radio skill-radio">
+                                    <label for="skill2" class="btn-radio text-xs flex-col px-2">
+                                        <span class="text-lg font-bold block mb-1">2</span>
+                                        <span>Paham Teori tapi masih perlu pendampingan</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalSkill" id="skill3" value="3" class="hidden-radio skill-radio">
+                                    <label for="skill3" class="btn-radio text-xs flex-col px-2">
+                                        <span class="text-lg font-bold block mb-1">3</span>
+                                        <span>Mampu Mandiri bekerja sesuai SOP</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalSkill" id="skill4" value="4" class="hidden-radio skill-radio">
+                                    <label for="skill4" class="btn-radio text-xs flex-col px-2">
+                                        <span class="text-lg font-bold block mb-1">4</span>
+                                        <span>Mahir & Cepat</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">Productivity / Produktivitas <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" name="evalProd" id="prod1" value="1" class="hidden-radio prod-radio" required>
+                                    <label for="prod1" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">1</span> > 30%
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalProd" id="prod2" value="2" class="hidden-radio prod-radio">
+                                    <label for="prod2" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">2</span> > 30-50%
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalProd" id="prod3" value="3" class="hidden-radio prod-radio">
+                                    <label for="prod3" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">3</span> > 50-75%
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalProd" id="prod4" value="4" class="hidden-radio prod-radio">
+                                    <label for="prod4" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">4</span> > 75-100%
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">Quality / Kualitas <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" name="evalQual" id="qual1" value="1" class="hidden-radio qual-radio" required>
+                                    <label for="qual1" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">1</span> Banyak Deffect
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalQual" id="qual2" value="2" class="hidden-radio qual-radio">
+                                    <label for="qual2" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">2</span> Deffect Minor
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalQual" id="qual3" value="3" class="hidden-radio qual-radio">
+                                    <label for="qual3" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">3</span> Sesuai Standar
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="evalQual" id="qual4" value="4" class="hidden-radio qual-radio">
+                                    <label for="qual4" class="btn-radio text-sm flex-col py-3">
+                                        <span class="text-lg font-bold block mb-1">4</span> Tidak Ada Deffect
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Catatan Mentor</label>
+                            <textarea id="evalNote" rows="2" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200" placeholder="Tulis catatan evaluasi..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Nama Mentor <span class="text-red-500">*</span></label>
+                            <input type="text" id="evalMentor" required class="w-full border rounded-lg p-2.5 focus:ring focus:ring-blue-200" placeholder="Nama Mentor Pembimbing">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="resetEvalForm()" class="px-5 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 transition">Batal / Clear</button>
+                        <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow"><i class="fas fa-save mr-1"></i> Simpan Evaluasi</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Dashboard Analitik -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-bold border-b pb-3 mb-4 flex items-center"><i class="fas fa-chart-line mr-2 text-blue-500"></i> Dashboard Analitik</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Tanggal Awal</label>
+                        <input type="date" id="filterStartDate" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Tanggal Akhir</label>
+                        <input type="date" id="filterEndDate" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Nama Manpower</label>
+                        <select id="filterName" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                            <option value="">Semua Manpower</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Line</label>
+                        <select id="filterLine" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                            <option value="">Semua Line</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="resetFilters()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded text-sm font-medium border transition">Reset Filter</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="border rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                        <h3 class="text-sm font-semibold mb-2 text-center text-gray-600">Distribusi Skill</h3>
+                        <div class="w-full h-48 relative"><canvas id="skillChart"></canvas></div>
+                    </div>
+                    <div class="border rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                        <h3 class="text-sm font-semibold mb-2 text-center text-gray-600">Distribusi Productivity</h3>
+                        <div class="w-full h-48 relative"><canvas id="prodChart"></canvas></div>
+                    </div>
+                    <div class="border rounded-lg p-4 bg-gray-50 flex flex-col items-center">
+                        <h3 class="text-sm font-semibold mb-2 text-center text-gray-600">Distribusi Quality</h3>
+                        <div class="w-full h-48 relative"><canvas id="qualChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 bg-gray-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-semibold text-gray-600">Perkembangan Manpower (Rata-rata Skor)</h3>
+                            <select id="trendTimeframe" class="border rounded p-1 text-sm bg-white" onchange="updateDashboard()">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="w-full h-80 relative"><canvas id="trendChart"></canvas></div>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 bg-gray-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-semibold text-gray-600">Perbandingan Rata-rata Antar Manpower</h3>
+                            <span class="text-xs text-gray-500">Skor Total (Absen, Skill, Prod, Qual)</span>
+                        </div>
+                        <div class="w-full h-80 relative"><canvas id="comparisonChart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabel-tabel Data & Rekap -->
+            <section class="space-y-8">
+                <!-- Tabel Evaluasi Harian -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800"><i class="fas fa-table mr-2 text-blue-500"></i> Data Evaluasi Harian</h2>
+                        <button onclick="exportTableToExcel('tableHarian', 'Data_Evaluasi_Harian', 'LAPORAN EVALUASI HARIAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="tableHarian" class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
+                                <tr>
+                                    <th class="px-4 py-3">Tanggal</th>
+                                    <th class="px-4 py-3">Nama</th>
+                                    <th class="px-4 py-3">Proses</th>
+                                    <th class="px-4 py-3 text-center">Absensi (Skor)</th>
+                                    <th class="px-4 py-3 text-center">Skill</th>
+                                    <th class="px-4 py-3 text-center">Prod.</th>
+                                    <th class="px-4 py-3 text-center">Qual.</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                    <th class="px-4 py-3">Mentor</th>
+                                    <th class="px-4 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evalTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                    <div id="paginationHarian" class="p-4 border-t bg-gray-50 flex justify-end items-center space-x-2"></div>
+                </div>
+
+                <!-- Tabel Rekap Mingguan -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800"><i class="fas fa-calendar-week mr-2 text-blue-500"></i> Rekap Evaluasi Mingguan (Rata-rata)</h2>
+                        <button onclick="exportTableToExcel('tableMingguan', 'Rekap_Mingguan', 'REKAPITULASI EVALUASI MINGGUAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="tableMingguan" class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
+                                <tr>
+                                    <th class="px-4 py-3">Nama</th>
+                                    <th class="px-4 py-3">Proses</th>
+                                    <th class="px-4 py-3">Periode Minggu</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Absen</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Skill</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Prod.</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Qual.</th>
+                                    <th class="px-4 py-3 text-center">Total Rata-rata</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weeklyTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                    <div id="paginationMingguan" class="p-4 border-t bg-gray-50 flex justify-end items-center space-x-2"></div>
+                </div>
+
+                <!-- Tabel Rekap Bulanan -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800"><i class="fas fa-calendar-alt mr-2 text-blue-500"></i> Rekap Evaluasi Bulanan (Rata-rata)</h2>
+                        <button onclick="exportTableToExcel('tableBulanan', 'Rekap_Bulanan', 'REKAPITULASI EVALUASI BULANAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="tableBulanan" class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
+                                <tr>
+                                    <th class="px-4 py-3">Nama</th>
+                                    <th class="px-4 py-3">Proses</th>
+                                    <th class="px-4 py-3">Periode Bulan</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Absen</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Skill</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Prod.</th>
+                                    <th class="px-4 py-3 text-center">Rata-rata Qual.</th>
+                                    <th class="px-4 py-3 text-center">Total Rata-rata</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                    <div id="paginationBulanan" class="p-4 border-t bg-gray-50 flex justify-end items-center space-x-2"></div>
+                </div>
+
+                <!-- Tabel Manpower -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i> Master Data Manpower</h2>
+                        <button onclick="exportTableToExcel('tableManpower', 'Master_Data_Manpower', 'MASTER DATA MANPOWER')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
+                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="tableManpower" class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
+                                <tr>
+                                    <th class="px-4 py-3">NIK</th>
+                                    <th class="px-4 py-3">Nama</th>
+                                    <th class="px-4 py-3">Proses</th>
+                                    <th class="px-4 py-3">Line</th>
+                                    <th class="px-4 py-3">Customer</th>
+                                    <th class="px-4 py-3 text-center">Shift</th>
+                                    <th class="px-4 py-3">Masa Kerja</th>
+                                    <th class="px-4 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manpowerTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                    <div id="paginationManpower" class="p-4 border-t bg-gray-50 flex justify-end items-center space-x-2"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal Manpower Form -->
+        <div id="manpowerModal" class="fixed inset-0 z-40 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+            <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-2xl transform scale-95 transition-transform overflow-hidden">
+                <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
+                    <h3 id="mpModalTitle" class="font-bold text-lg">Add New Manpower</h3>
+                    <button onclick="closeManpowerModal()" class="text-white hover:text-gray-200 text-xl">&times;</button>
+                </div>
+                <div class="p-6">
+                    <form id="manpowerForm" onsubmit="handleManpowerSubmit(event)">
+                        <input type="hidden" id="mpId" value="">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">NIK <span class="text-red-500">*</span></label>
+                                <input type="text" id="mpNik" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Nama <span class="text-red-500">*</span></label>
+                                <input type="text" id="mpName" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Tanggal Masuk <span class="text-red-500">*</span></label>
+                                <input type="date" id="mpEntryDate" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Proses <span class="text-red-500">*</span></label>
+                                <input type="text" id="mpProcess" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Line <span class="text-red-500">*</span></label>
+                                <select id="mpLine" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                                    <option value="Line 1">Line 1</option>
+                                    <option value="Line 2">Line 2</option>
+                                    <option value="Line 3">Line 3</option>
+                                    <option value="Line 4">Line 4</option>
+                                    <option value="Line 5">Line 5</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Customer <span class="text-red-500">*</span></label>
+                                <input type="text" id="mpCustomer" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Shift <span class="text-red-500">*</span></label>
+                                <select id="mpShift" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                                    <option value="Shift A">Shift A</option>
+                                    <option value="Shift B">Shift B</option>
+                                    <option value="Non Shift">Non Shift</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-6">
+                            <button type="button" onclick="closeManpowerModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Simpan Data</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Akun Pengguna (Admin) -->
+        <div id="accountModal" class="fixed inset-0 z-40 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+            <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-md transform scale-95 transition-transform overflow-hidden">
+                <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
+                    <h3 id="accModalTitle" class="font-bold text-lg">Tambah Akun Baru</h3>
+                    <button onclick="closeAccountModal()" class="text-white hover:text-gray-200 text-xl">&times;</button>
+                </div>
+                <div class="p-6">
+                    <form id="accountForm" onsubmit="handleAccountSubmit(event)">
+                        <input type="hidden" id="accOriginalUsername" value="">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Username <span class="text-red-500">*</span></label>
+                                <input type="text" id="accUsername" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                                <input type="text" id="accName" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Password <span class="text-red-500">*</span></label>
+                                <input type="text" id="accPass" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200" placeholder="Password akun...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Role / Hak Akses <span class="text-red-500">*</span></label>
+                                <select id="accRole" required class="w-full border rounded p-2 focus:ring focus:ring-blue-200" onchange="toggleLineSelectInput()">
+                                    <option value="user">User Line</option>
+                                    <option value="admin">Administrator</option>
+                                </select>
+                            </div>
+                            <div id="accLineContainer">
+                                <label class="block text-sm font-medium mb-1">Line Terkait <span class="text-red-500">*</span></label>
+                                <select id="accLine" class="w-full border rounded p-2 focus:ring focus:ring-blue-200">
+                                    <option value="Line 1">Line 1</option>
+                                    <option value="Line 2">Line 2</option>
+                                    <option value="Line 3">Line 3</option>
+                                    <option value="Line 4">Line 4</option>
+                                    <option value="Line 5">Line 5</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-6">
+                            <button type="button" onclick="closeAccountModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Simpan Akun</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Histori Detail -->
+        <div id="historyModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+            <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-4xl transform scale-95 transition-transform overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white shrink-0">
+                    <h3 id="historyModalTitle" class="font-bold text-lg">Histori Evaluasi</h3>
+                    <button onclick="closeHistoryModal()" class="text-white hover:text-gray-200 text-xl">&times;</button>
+                </div>
+                <div class="px-6 py-3 bg-gray-50 border-b flex justify-between items-center shrink-0">
+                    <span id="historyModalSubtitle" class="text-xs text-gray-500 font-medium">Detail Riwayat Evaluasi</span>
+                    <button id="historyDownloadBtn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center transition shadow-sm">
+                        <i class="fas fa-file-excel mr-1.5"></i> Download Detail Excel
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto">
+                    <div class="overflow-x-auto">
+                        <table id="historyTable" class="w-full text-sm text-left border">
+                            <thead id="historyTableHead" class="text-xs text-gray-600 uppercase bg-gray-100 border-b"></thead>
+                            <tbody id="historyTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="p-4 border-t bg-gray-50 flex justify-end shrink-0">
+                    <button onclick="closeHistoryModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL Cloud Google Apps Script
+        const CLOUD_API_URL = "https://script.google.com/macros/s/AKfycbxTk-Crl4iJNeY0CFwNotOWnfV9tBxPZw4n9rjjNv2zeu95C8T_Df1o3A7o-bpXFHQ0/exec";
+
+        let accounts = [];
+        let currentUser = JSON.parse(localStorage.getItem('mp_current_user')) || null;
+        let manpowers = [];
+        let evaluations = [];
+        
+        let charts = { skill: null, prod: null, qual: null, trend: null, comparison: null };
+
+        let ROWS_PER_PAGE = 10;
+        let currentPage = { harian: 1, mingguan: 1, bulanan: 1, manpower: 1 };
+
+        const chartColors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+        const linePalette = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+        const skillLabels = ['Belum Mampu/Perlu Pendampingan', 'Paham Teori Perlu Pendampingan', 'Mampu Mandiri Sesuai SOP', 'Mahir & Cepat'];
+        const prodLabels = ['> 30%', '> 30-50%', '> 50-75%', '> 75-100%'];
+        const qualLabels = ['Banyak Deffect', 'Deffect Minor', 'Sesuai Standar', 'Tidak Ada Deffect'];
+
+        function getAttScore(attendance) { return attendance === 'Hadir' ? 3 : -2; }
+
+        async function loadCloudData() {
+            try {
+                let response = await fetch(CLOUD_API_URL + "?action=getData");
+                let result = await response.json();
+                manpowers = result.manpowers || [];
+                evaluations = result.evaluations || [];
+                accounts = result.accounts || [];
+                
+                if (accounts.length === 0) {
+                    accounts = [
+                        { username: 'admin', pass: 'admin123', role: 'admin', line: '', name: 'Administrator' },
+                        { username: 'line1', pass: 'line123', role: 'user', line: 'Line 1', name: 'User Line 1' },
+                        { username: 'line2', pass: 'line123', role: 'user', line: 'Line 2', name: 'User Line 2' },
+                        { username: 'line3', pass: 'line123', role: 'user', line: 'Line 3', name: 'User Line 3' },
+                        { username: 'line4', pass: 'line123', role: 'user', line: 'Line 4', name: 'User Line 4' },
+                        { username: 'line5', pass: 'line123', role: 'user', line: 'Line 5', name: 'User Line 5' }
+                    ];
+                }
+
+                if (currentUser) {
+                    let updatedUser = accounts.find(a => a.username === currentUser.username);
+                    if (updatedUser) currentUser = updatedUser;
+                }
+
+                if (manpowers.length === 0 && evaluations.length === 0) {
+                    initSampleData();
+                } else {
+                    refreshAllUI();
+                    if (currentUser && currentUser.role === 'admin') renderAccountsTable();
+                }
+            } catch (err) {
+                console.error("Gagal memuat data dari cloud:", err);
+            }
+        }
+
+        async function saveData() {
+            let payload = {
+                manpowers: manpowers,
+                evaluations: evaluations,
+                accounts: accounts
+            };
+
+            try {
+                await fetch(CLOUD_API_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                setTimeout(loadCloudData, 1500);
+            } catch (err) {
+                console.error("Gagal menyimpan ke cloud:", err);
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value.trim();
+            const errDiv = document.getElementById('loginError');
+
+            const found = accounts.find(acc => acc.username === u && acc.pass === p);
+            if (found) {
+                currentUser = found;
+                localStorage.setItem('mp_current_user', JSON.stringify(currentUser));
+                errDiv.classList.add('hidden');
+                initAppSession();
+            } else {
+                errDiv.innerText = "Username atau password salah!";
+                errDiv.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('mp_current_user');
+            currentUser = null;
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+        }
+
+        window.onload = function() {
+            loadCloudData().then(() => {
+                if (currentUser) {
+                    initAppSession();
+                } else {
+                    document.getElementById('loginScreen').classList.remove('hidden');
+                }
+            });
+        };
+
+        function initAppSession() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            
+            const badge = document.getElementById('userSessionBadge');
+            const btnAddMp = document.getElementById('btnAddManpowerHeader');
+            const adminSection = document.getElementById('adminAccountSection');
+
+            if (currentUser.role === 'admin') {
+                badge.innerHTML = `Login sebagai: <b>Administrator</b> (Akses Penuh)`;
+                btnAddMp.style.display = 'flex';
+                adminSection.classList.remove('hidden');
+                renderAccountsTable();
+            } else {
+                badge.innerHTML = `Login sebagai: <b>${currentUser.name}</b> (Akses Terbatas: ${currentUser.line})`;
+                btnAddMp.style.display = 'none';
+                adminSection.classList.add('hidden');
+            }
+
+            refreshAllUI();
+        }
+
+        function showMessage(title, text, type = 'info', onConfirm = null) {
+            const box = document.getElementById('messageBox');
+            document.getElementById('msgTitle').innerText = title;
+            document.getElementById('msgText').innerText = text;
+            
+            const okBtn = document.getElementById('msgOkBtn');
+            const cancelBtn = document.getElementById('msgCancelBtn');
+            
+            const newOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            box.classList.remove('hidden');
+            setTimeout(() => box.firstElementChild.classList.remove('scale-95'), 10);
+
+            if (type === 'confirm') {
+                newCancelBtn.classList.remove('hidden');
+                newCancelBtn.onclick = () => closeMessage();
+                newOkBtn.onclick = () => { onConfirm(); closeMessage(); };
+                newOkBtn.className = "px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700";
+            } else {
+                newCancelBtn.classList.add('hidden');
+                newOkBtn.onclick = () => closeMessage();
+                newOkBtn.className = "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700";
+                if (type === 'error') newOkBtn.className = "px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700";
+            }
+        }
+
+        function closeMessage() {
+            const box = document.getElementById('messageBox');
+            box.firstElementChild.classList.add('scale-95');
+            setTimeout(() => box.classList.add('hidden'), 200);
+        }
+
+        // --- FUNGSI MANAJEMEN AKUN (ADMIN) ---
+        function renderAccountsTable() {
+            const tbody = document.getElementById('accountsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            accounts.forEach(acc => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-semibold text-gray-900">${acc.username}</td>
+                    <td class="px-4 py-3">${acc.name}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 text-xs rounded-full font-semibold ${acc.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-blue-100 text-blue-700 border border-blue-200'}">
+                            ${acc.role === 'admin' ? 'Administrator' : 'User Line'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">${acc.line ? acc.line : '-'}</td>
+                    <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                        <button onclick="openAccountModal('${acc.username}')" class="text-blue-500 hover:text-blue-700" title="Edit Akun & Password"><i class="fas fa-edit"></i></button>
+                        ${acc.username !== 'admin' ? `<button onclick="deleteAccount('${acc.username}')" class="text-red-500 hover:text-red-700" title="Hapus Akun"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAccountModal(username = null) {
+            const form = document.getElementById('accountForm');
+            form.reset();
+            document.getElementById('accOriginalUsername').value = '';
+            document.getElementById('accModalTitle').innerText = "Tambah Akun Baru";
+            document.getElementById('accLineContainer').style.display = 'block';
+
+            if (username) {
+                const acc = accounts.find(a => a.username === username);
+                if (acc) {
+                    document.getElementById('accOriginalUsername').value = acc.username;
+                    document.getElementById('accUsername').value = acc.username;
+                    document.getElementById('accName').value = acc.name;
+                    document.getElementById('accPass').value = acc.pass;
+                    document.getElementById('accRole').value = acc.role;
+                    if (acc.role === 'admin') {
+                        document.getElementById('accLineContainer').style.display = 'none';
+                    } else {
+                        document.getElementById('accLine').value = acc.line || 'Line 1';
+                    }
+                    document.getElementById('accModalTitle').innerText = "Edit Akun Pengguna";
+                }
+            }
+
+            const modal = document.getElementById('accountModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.firstElementChild.classList.remove('scale-95'), 10);
+        }
+
+        function closeAccountModal() {
+            const modal = document.getElementById('accountModal');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function toggleLineSelectInput() {
+            const role = document.getElementById('accRole').value;
+            const lineCont = document.getElementById('accLineContainer');
+            if (role === 'admin') {
+                lineCont.style.display = 'none';
+            } else {
+                lineCont.style.display = 'block';
+            }
+        }
+
+        function handleAccountSubmit(e) {
+            e.preventDefault();
+            const originalUser = document.getElementById('accOriginalUsername').value;
+            const newUsername = document.getElementById('accUsername').value.trim();
+            const name = document.getElementById('accName').value.trim();
+            const pass = document.getElementById('accPass').value.trim();
+            const role = document.getElementById('accRole').value;
+            const line = role === 'admin' ? '' : document.getElementById('accLine').value;
+
+            const isDuplicate = accounts.some(a => a.username === newUsername && a.username !== originalUser);
+            if (isDuplicate) {
+                showMessage("Gagal", "Username tersebut sudah terdaftar. Gunakan username lain.", "error");
+                return;
+            }
+
+            if (originalUser) {
+                const idx = accounts.findIndex(a => a.username === originalUser);
+                if (idx !== -1) {
+                    accounts[idx] = { username: newUsername, name, pass, role, line };
+                }
+                showMessage("Sukses", "Data akun berhasil diperbarui.");
+            } else {
+                accounts.push({ username: newUsername, name, pass, role, line });
+                showMessage("Sukses", "Akun baru berhasil ditambahkan.");
+            }
+
+            saveData();
+            closeAccountModal();
+            renderAccountsTable();
+        }
+
+        function deleteAccount(username) {
+            showMessage("Konfirmasi Hapus", `Hapus akun ${username}?`, "confirm", () => {
+                accounts = accounts.filter(a => a.username !== username);
+                saveData();
+                renderAccountsTable();
+            });
+        }
+
+        function calculateTenure(entryDateStr) {
+            if (!entryDateStr) return '-';
+            const start = new Date(entryDateStr);
+            const end = new Date();
+            if (isNaN(start.getTime())) return '-';
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+            if (start > end) return 'Belum Masuk';
+
+            let years = end.getFullYear() - start.getFullYear();
+            let months = end.getMonth() - start.getMonth();
+            let days = end.getDate() - start.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonthDate = new Date(end.getFullYear(), end.getMonth(), 0);
+                days += prevMonthDate.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            let parts = [];
+            if (years > 0) parts.push(`${years} tahun`);
+            if (months > 0) parts.push(`${months} bulan`);
+            if (days > 0) parts.push(`${days} hari`);
+            return parts.length === 0 ? '0 hari' : parts.join(' ');
+        }
+
+        function getFilteredManpowers() {
+            if (currentUser && currentUser.role === 'user') {
+                return manpowers.filter(m => m.line === currentUser.line);
+            }
+            return manpowers;
+        }
+
+        function getFilteredEvaluations() {
+            let evs = evaluations;
+            if (currentUser && currentUser.role === 'user') {
+                const allowedMpNames = manpowers.filter(m => m.line === currentUser.line).map(m => m.name);
+                evs = evaluations.filter(e => allowedMpNames.includes(e.name));
+            }
+            return evs;
+        }
+
+        function refreshAllUI() {
+            renderManpowerDropdowns();
+            renderFilterDropdowns();
+            renderTables();
+            renderSummaryTables();
+            updateDashboard();
+        }
+
+        function renderManpowerDropdowns() {
+            const select = document.getElementById('evalNameSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Pilih Manpower --</option>';
+            
+            const availableMp = getFilteredManpowers();
+            availableMp.forEach(mp => {
+                const opt = document.createElement('option');
+                opt.value = mp.name;
+                opt.text = `${mp.name} (${mp.nik} - ${mp.line})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderFilterDropdowns() {
+            const fName = document.getElementById('filterName');
+            const fLine = document.getElementById('filterLine');
+            if (!fName || !fLine) return;
+            
+            const currentName = fName.value;
+            const currentLine = fLine.value;
+
+            fName.innerHTML = '<option value="">Semua Manpower</option>';
+            fLine.innerHTML = '<option value="">Semua Line</option>';
+
+            const availableMp = getFilteredManpowers();
+            const uniqueNames = [...new Set(availableMp.map(m => m.name))];
+            const uniqueLines = [...new Set(availableMp.map(m => m.line))];
+
+            uniqueNames.forEach(n => fName.add(new Option(n, n)));
+            uniqueLines.forEach(l => fLine.add(new Option(l, l)));
+
+            fName.value = currentName;
+
+            if (currentUser && currentUser.role === 'user') {
+                fLine.value = currentUser.line;
+                fLine.disabled = true;
+            } else {
+                fLine.value = currentLine;
+                fLine.disabled = false;
+            }
+        }
+
+        function autoFillProcess() {
+            const name = document.getElementById('evalNameSelect').value;
+            const mp = manpowers.find(m => m.name === name);
+            if(mp) {
+                document.getElementById('evalProcess').value = mp.process;
+            } else {
+                document.getElementById('evalProcess').value = "";
+            }
+        }
+
+        function toggleEvalInputs(isHadir) {
+            const metrics = document.getElementById('evaluationMetrics');
+            const inputs = metrics.querySelectorAll('input[type="radio"]');
+            inputs.forEach(input => {
+                input.disabled = !isHadir;
+                if(!isHadir) input.checked = false;
+            });
+            metrics.style.opacity = isHadir ? '1' : '0.5';
+        }
+
+        function resetFilters() {
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            document.getElementById('filterName').value = '';
+            if (currentUser.role === 'admin') {
+                document.getElementById('filterLine').value = '';
+            }
+            updateDashboard();
+        }
+
+        function handleEvaluationSubmit(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('evalId').value;
+            const date = document.getElementById('evalDate').value;
+            const name = document.getElementById('evalNameSelect').value;
+            
+            const mpObj = manpowers.find(m => m.name === name);
+            if (currentUser.role === 'user' && mpObj && mpObj.line !== currentUser.line) {
+                showMessage("Akses Ditolak", "Anda hanya dapat menginput data untuk manpower di line Anda.", "error");
+                return;
+            }
+
+            const isDuplicate = evaluations.some(ev => ev.name === name && ev.date === date && ev.id !== id);
+            if (isDuplicate) {
+                showMessage("Gagal Disimpan", `Data evaluasi untuk ${name} pada tanggal ${date} sudah ada.`, "error");
+                return;
+            }
+
+            const attendance = document.querySelector('input[name="evalAttendance"]:checked').value;
+            let skill = 0, prod = 0, qual = 0;
+            
+            if (attendance === 'Hadir') {
+                const s = document.querySelector('input[name="evalSkill"]:checked');
+                const p = document.querySelector('input[name="evalProd"]:checked');
+                const q = document.querySelector('input[name="evalQual"]:checked');
+                
+                if (!s || !p || !q) {
+                    showMessage("Peringatan", "Harap isi semua matriks jika Manpower Hadir.", "error");
+                    return;
+                }
+                skill = parseInt(s.value);
+                prod = parseInt(p.value);
+                qual = parseInt(q.value);
+            }
+
+            const newData = {
+                id: id || 'EV' + Date.now(),
+                date,
+                name,
+                process: document.getElementById('evalProcess').value,
+                attendance,
+                skill,
+                prod,
+                qual,
+                note: document.getElementById('evalNote').value,
+                mentor: document.getElementById('evalMentor').value
+            };
+
+            if (id) {
+                const idx = evaluations.findIndex(ev => ev.id === id);
+                if(idx !== -1) evaluations[idx] = newData;
+                showMessage("Sukses", "Data evaluasi berhasil diupdate.");
+            } else {
+                evaluations.push(newData);
+                showMessage("Sukses", "Data evaluasi berhasil ditambahkan.");
+            }
+
+            saveData();
+            resetEvalForm();
+            refreshAllUI();
+        }
+
+        function editEval(id) {
+            const ev = evaluations.find(e => e.id === id);
+            if(!ev) return;
+
+            const mpObj = manpowers.find(m => m.name === ev.name);
+            if (currentUser.role === 'user' && mpObj && mpObj.line !== currentUser.line) {
+                showMessage("Akses Ditolak", "Anda tidak memiliki izin mengedit data line lain.", "error");
+                return;
+            }
+
+            document.getElementById('evalId').value = ev.id;
+            document.getElementById('evalDate').value = ev.date;
+            document.getElementById('evalNameSelect').value = ev.name;
+            document.getElementById('evalProcess').value = ev.process;
+            
+            if(ev.attendance === 'Hadir') {
+                document.getElementById('attHadir').checked = true;
+                toggleEvalInputs(true);
+                document.querySelector(`input[name="evalSkill"][value="${ev.skill}"]`).checked = true;
+                document.querySelector(`input[name="evalProd"][value="${ev.prod}"]`).checked = true;
+                document.querySelector(`input[name="evalQual"][value="${ev.qual}"]`).checked = true;
+            } else {
+                document.getElementById('attTidak').checked = true;
+                toggleEvalInputs(false);
+            }
+
+            document.getElementById('evalNote').value = ev.note;
+            document.getElementById('evalMentor').value = ev.mentor;
+            
+            document.getElementById('evalFormMode').innerText = "Mode Edit Data";
+            document.getElementById('evalFormMode').className = "text-xs font-semibold px-2 py-1 bg-yellow-100 text-yellow-700 rounded uppercase";
+            document.getElementById('evaluationForm').scrollIntoView({behavior: "smooth", block: "center"});
+        }
+
+        function deleteEval(id) {
+            const ev = evaluations.find(e => e.id === id);
+            if (!ev) return;
+            const mpObj = manpowers.find(m => m.name === ev.name);
+            if (currentUser.role === 'user' && mpObj && mpObj.line !== currentUser.line) {
+                showMessage("Akses Ditolak", "Anda tidak memiliki izin menghapus data line lain.", "error");
+                return;
+            }
+
+            showMessage("Konfirmasi Hapus", "Yakin ingin menghapus data evaluasi ini?", "confirm", () => {
+                evaluations = evaluations.filter(e => e.id !== id);
+                saveData();
+                refreshAllUI();
+            });
+        }
+
+        function resetEvalForm() {
+            document.getElementById('evaluationForm').reset();
+            document.getElementById('evalId').value = "";
+            document.getElementById('evalProcess').value = "";
+            toggleEvalInputs(true);
+            document.getElementById('evalFormMode').innerText = "Mode Input Baru";
+            document.getElementById('evalFormMode').className = "text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded uppercase";
+        }
+
+        function openManpowerModal(id = null) {
+            if (currentUser.role === 'user') {
+                showMessage("Akses Ditolak", "Hanya Administrator yang dapat menambah atau mengubah Master Data Manpower.", "error");
+                return;
+            }
+
+            const form = document.getElementById('manpowerForm');
+            form.reset();
+            document.getElementById('mpId').value = '';
+            document.getElementById('mpModalTitle').innerText = "Add New Manpower";
+
+            if (id) {
+                const mp = manpowers.find(m => m.id === id);
+                if (mp) {
+                    document.getElementById('mpId').value = mp.id;
+                    document.getElementById('mpNik').value = mp.nik;
+                    document.getElementById('mpName').value = mp.name;
+                    document.getElementById('mpEntryDate').value = mp.entryDate || ''; 
+                    document.getElementById('mpProcess').value = mp.process;
+                    document.getElementById('mpLine').value = mp.line;
+                    document.getElementById('mpCustomer').value = mp.customer;
+                    document.getElementById('mpShift').value = mp.shift;
+                    document.getElementById('mpModalTitle').innerText = "Edit Manpower";
+                }
+            }
+
+            const modal = document.getElementById('manpowerModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.firstElementChild.classList.remove('scale-95'), 10);
+        }
+
+        function closeManpowerModal() {
+            const modal = document.getElementById('manpowerModal');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function handleManpowerSubmit(e) {
+            e.preventDefault();
+            if (currentUser.role === 'user') return;
+
+            const id = document.getElementById('mpId').value;
+            const newData = {
+                id: id || 'MP' + Date.now(),
+                nik: document.getElementById('mpNik').value,
+                name: document.getElementById('mpName').value,
+                entryDate: document.getElementById('mpEntryDate').value,
+                process: document.getElementById('mpProcess').value,
+                line: document.getElementById('mpLine').value,
+                customer: document.getElementById('mpCustomer').value,
+                shift: document.getElementById('mpShift').value,
+            };
+
+            if (id) {
+                const idx = manpowers.findIndex(m => m.id === id);
+                if(idx !== -1) manpowers[idx] = newData;
+                showMessage("Sukses", "Data Manpower berhasil diupdate.");
+            } else {
+                manpowers.push(newData);
+                showMessage("Sukses", "Manpower baru berhasil ditambahkan.");
+            }
+
+            saveData();
+            closeManpowerModal();
+            refreshAllUI();
+        }
+
+        function deleteManpower(id) {
+            if (currentUser.role === 'user') {
+                showMessage("Akses Ditolak", "Hanya Administrator yang dapat menghapus Master Data Manpower.", "error");
+                return;
+            }
+
+            showMessage("Konfirmasi Hapus", "Hapus Manpower ini?", "confirm", () => {
+                manpowers = manpowers.filter(m => m.id !== id);
+                saveData();
+                refreshAllUI();
+            });
+        }
+
+        function openHistoryModal(name, type = 'daily') {
+            const historyBody = document.getElementById('historyTableBody');
+            const historyHead = document.getElementById('historyTableHead');
+            const downloadBtn = document.getElementById('historyDownloadBtn');
+            historyBody.innerHTML = '';
+            
+            const mpObj = manpowers.find(m => m.name === name);
+            const tenureRaw = mpObj ? calculateTenure(mpObj.entryDate) : '-';
+
+            downloadBtn.onclick = function() {
+                exportTableToExcel('historyTable', `Histori_${type}_${name}`, `RIWAYAT ${name}`);
+            };
+
+            if (type === 'daily') {
+                document.getElementById('historyModalTitle').innerText = `Histori Evaluasi Harian: ${name}`;
+                document.getElementById('historyModalSubtitle').innerText = `Masa Kerja: ${tenureRaw}`;
+                historyHead.innerHTML = `
+                    <tr>
+                        <th class="px-4 py-3">Tanggal</th>
+                        <th class="px-4 py-3 text-center">Absensi (Skor)</th>
+                        <th class="px-4 py-3 text-center">Skill</th>
+                        <th class="px-4 py-3 text-center">Productivity</th>
+                        <th class="px-4 py-3 text-center">Quality</th>
+                        <th class="px-4 py-3 text-center">Rata-rata</th>
+                        <th class="px-4 py-3 text-center">Status</th>
+                    </tr>
+                `;
+                
+                const mpEvals = evaluations.filter(e => e.name === name).sort((a,b) => new Date(b.date) - new Date(a.date));
+                mpEvals.forEach(ev => {
+                    const attScore = getAttScore(ev.attendance);
+                    const s = parseFloat(ev.skill) || 0;
+                    const p = parseFloat(ev.prod) || 0;
+                    const q = parseFloat(ev.qual) || 0;
+                    const avg = (attScore + s + p + q) / 4;
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 transition";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3">${ev.date}</td>
+                        <td class="px-4 py-3 text-center font-bold">${attScore}</td>
+                        <td class="px-4 py-3 text-center font-bold text-blue-600">${s}</td>
+                        <td class="px-4 py-3 text-center font-bold text-purple-600">${p}</td>
+                        <td class="px-4 py-3 text-center font-bold text-yellow-600">${q}</td>
+                        <td class="px-4 py-3 text-center font-bold bg-gray-100">${avg.toFixed(2)}</td>
+                        <td class="px-4 py-3 text-center">${getStatusHtml(avg)}</td>
+                    `;
+                    historyBody.appendChild(tr);
+                });
+            } else {
+                const isWeekly = type === 'weekly';
+                document.getElementById('historyModalTitle').innerText = `Histori Rekap ${isWeekly ? 'Mingguan' : 'Bulanan'}: ${name}`;
+                historyHead.innerHTML = `
+                    <tr>
+                        <th class="px-4 py-3">${isWeekly ? 'Periode Minggu' : 'Periode Bulan'}</th>
+                        <th class="px-4 py-3 text-center">Rata-rata Absen</th>
+                        <th class="px-4 py-3 text-center">Rata-rata Skill</th>
+                        <th class="px-4 py-3 text-center">Rata-rata Prod.</th>
+                        <th class="px-4 py-3 text-center">Rata-rata Qual.</th>
+                        <th class="px-4 py-3 text-center">Total Rata-rata</th>
+                        <th class="px-4 py-3 text-center">Status</th>
+                    </tr>
+                `;
+                let groupedData = groupEvaluations(type).filter(d => d.name === name);
+                groupedData.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-4 py-3">${d.period}</td>
+                        <td class="px-4 py-3 text-center text-teal-600 font-semibold">${d.avgAtt}</td>
+                        <td class="px-4 py-3 text-center text-blue-600 font-semibold">${d.avgSkill}</td>
+                        <td class="px-4 py-3 text-center text-purple-600 font-semibold">${d.avgProd}</td>
+                        <td class="px-4 py-3 text-center text-yellow-600 font-semibold">${d.avgQual}</td>
+                        <td class="px-4 py-3 text-center font-bold bg-gray-100">${d.avgTotal}</td>
+                        <td class="px-4 py-3 text-center">${d.statusHtml}</td>
+                    `;
+                    historyBody.appendChild(tr);
+                });
+            }
+
+            const modal = document.getElementById('historyModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.firstElementChild.classList.remove('scale-95'), 10);
+        }
+
+        function closeHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function getStatusHtml(avg) {
+            if (avg >= 3) {
+                return '<span class="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 font-semibold border border-emerald-200">Good</span>';
+            } else {
+                return '<span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700 font-semibold border border-orange-200">Need Improvement</span>';
+            }
+        }
+
+        function exportTableToExcel(tableId, filename = '', fileTitle = '') {
+            let tempRows = ROWS_PER_PAGE;
+            ROWS_PER_PAGE = 999999;
+            renderTables();
+            renderSummaryTables();
+
+            let table = document.getElementById(tableId);
+            let cloneTable = table.cloneNode(true);
+            let ws = XLSX.utils.table_to_sheet(cloneTable);
+
+            if (fileTitle) {
+                XLSX.utils.sheet_add_aoa(ws, [[fileTitle]], { origin: "A1" });
+            }
+
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data");
+            XLSX.writeFile(wb, (filename ? filename : 'Export') + '.xlsx');
+
+            ROWS_PER_PAGE = tempRows;
+            renderTables();
+            renderSummaryTables();
+        }
+
+        function renderPagination(containerId, current, total, type) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (total <= 1) { container.innerHTML = ''; return; }
+            container.innerHTML = `
+                <span class="text-sm text-gray-600 mr-4 font-medium">Halaman ${current} dari ${total}</span>
+                <button onclick="changePage('${type}', -1)" class="px-3 py-1 bg-white border rounded hover:bg-gray-100 transition ${current === 1 ? 'opacity-50 cursor-not-allowed' : ''}" ${current === 1 ? 'disabled' : ''}>Prev</button>
+                <button onclick="changePage('${type}', 1)" class="px-3 py-1 bg-white border rounded hover:bg-gray-100 transition ${current === total ? 'opacity-50 cursor-not-allowed' : ''}" ${current === total ? 'disabled' : ''}>Next</button>
+            `;
+        }
+
+        function changePage(type, delta) {
+            currentPage[type] += delta;
+            renderTables();
+            renderSummaryTables();
+        }
+
+        function renderTables() {
+            const evBody = document.getElementById('evalTableBody');
+            evBody.innerHTML = "";
+            
+            const filteredEval = getFilteredEvaluations().sort((a,b) => new Date(b.date) - new Date(a.date));
+            const totalHarian = Math.ceil(filteredEval.length / ROWS_PER_PAGE) || 1;
+            if (currentPage.harian > totalHarian) currentPage.harian = totalHarian;
+            const startHarian = (currentPage.harian - 1) * ROWS_PER_PAGE;
+            const currentHarian = filteredEval.slice(startHarian, startHarian + ROWS_PER_PAGE);
+
+            currentHarian.forEach(ev => {
+                const attScore = getAttScore(ev.attendance);
+                const s = parseFloat(ev.skill) || 0;
+                const p = parseFloat(ev.prod) || 0;
+                const q = parseFloat(ev.qual) || 0;
+                const avg = (attScore + s + p + q) / 4;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 whitespace-nowrap">${ev.date}</td>
+                    <td class="px-4 py-3 font-medium">
+                        <button onclick="openHistoryModal('${ev.name}', 'daily')" class="text-blue-600 hover:underline text-left">${ev.name}</button>
+                    </td>
+                    <td class="px-4 py-3">${ev.process}</td>
+                    <td class="px-4 py-3 text-center font-bold">${attScore}</td>
+                    <td class="px-4 py-3 text-center font-bold text-blue-600">${ev.skill || '0'}</td>
+                    <td class="px-4 py-3 text-center font-bold text-purple-600">${ev.prod || '0'}</td>
+                    <td class="px-4 py-3 text-center font-bold text-yellow-600">${ev.qual || '0'}</td>
+                    <td class="px-4 py-3 text-center">${getStatusHtml(avg)}</td>
+                    <td class="px-4 py-3">${ev.mentor}</td>
+                    <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                        <button onclick="editEval('${ev.id}')" class="text-blue-500 hover:text-blue-700" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteEval('${ev.id}')" class="text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                evBody.appendChild(tr);
+            });
+            if(filteredEval.length === 0) {
+                evBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-500">Belum ada data evaluasi.</td></tr>`;
+            }
+            renderPagination('paginationHarian', currentPage.harian, totalHarian, 'harian');
+
+            const mpBody = document.getElementById('manpowerTableBody');
+            mpBody.innerHTML = "";
+            const filteredMp = getFilteredManpowers();
+            const totalMp = Math.ceil(filteredMp.length / ROWS_PER_PAGE) || 1;
+            if (currentPage.manpower > totalMp) currentPage.manpower = totalMp;
+            const startMp = (currentPage.manpower - 1) * ROWS_PER_PAGE;
+            const currentMp = filteredMp.slice(startMp, startMp + ROWS_PER_PAGE);
+
+            currentMp.forEach(mp => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                const tenureText = calculateTenure(mp.entryDate);
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3">${mp.nik}</td>
+                    <td class="px-4 py-3 font-medium">${mp.name}</td>
+                    <td class="px-4 py-3">${mp.process}</td>
+                    <td class="px-4 py-3">${mp.line}</td>
+                    <td class="px-4 py-3">${mp.customer}</td>
+                    <td class="px-4 py-3 text-center">${mp.shift}</td>
+                    <td class="px-4 py-3"><span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">${tenureText}</span></td>
+                    <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                        ${currentUser.role === 'admin' ? `
+                            <button onclick="openManpowerModal('${mp.id}')" class="text-blue-500 hover:text-blue-700" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteManpower('${mp.id}')" class="text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button>
+                        ` : '<span class="text-xs text-gray-400 italic">Read-only</span>'}
+                    </td>
+                `;
+                mpBody.appendChild(tr);
+            });
+            if(filteredMp.length === 0) {
+                mpBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">Belum ada data manpower.</td></tr>`;
+            }
+            renderPagination('paginationManpower', currentPage.manpower, totalMp, 'manpower');
+        }
+
+        function groupEvaluations(timeframe) {
+            let grouped = {};
+            getFilteredEvaluations().forEach(ev => {
+                let period = "";
+                const dt = new Date(ev.date);
+                if (timeframe === 'monthly') {
+                    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                    period = `${monthNames[dt.getMonth()]} ${dt.getFullYear()}`;
+                } else {
+                    const firstDayOfYear = new Date(dt.getFullYear(), 0, 1);
+                    const pastDaysOfYear = (dt - firstDayOfYear) / 86400000;
+                    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+                    period = `Minggu ke-${weekNum}, ${dt.getFullYear()}`;
+                }
+
+                const key = `${ev.name}|${period}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        name: ev.name, process: ev.process, period: period,
+                        attSum: 0, skillSum: 0, prodSum: 0, qualSum: 0, count: 0, sortKey: dt.getTime()
+                    };
+                }
+                grouped[key].attSum += getAttScore(ev.attendance);
+                grouped[key].skillSum += parseFloat(ev.skill) || 0;
+                grouped[key].prodSum += parseFloat(ev.prod) || 0;
+                grouped[key].qualSum += parseFloat(ev.qual) || 0;
+                grouped[key].count++;
+            });
+
+            return Object.values(grouped).map(item => {
+                const avgAtt = item.attSum / item.count;
+                const avgSkill = item.skillSum / item.count;
+                const avgProd = item.prodSum / item.count;
+                const avgQual = item.qualSum / item.count;
+                const avgTotal = (avgAtt + avgSkill + avgProd + avgQual) / 4;
+
+                return {
+                    ...item,
+                    avgAtt: avgAtt.toFixed(2), avgSkill: avgSkill.toFixed(2),
+                    avgProd: avgProd.toFixed(2), avgQual: avgQual.toFixed(2),
+                    avgTotal: avgTotal.toFixed(2), statusHtml: getStatusHtml(avgTotal)
+                };
+            }).sort((a, b) => b.sortKey - a.sortKey || a.name.localeCompare(b.name));
+        }
+
+        function renderSummaryTables() {
+            const wBody = document.getElementById('weeklyTableBody');
+            const mBody = document.getElementById('monthlyTableBody');
+            
+            const weeklyData = groupEvaluations('weekly');
+            const monthlyData = groupEvaluations('monthly');
+
+            const totalWeek = Math.ceil(weeklyData.length / ROWS_PER_PAGE) || 1;
+            if (currentPage.mingguan > totalWeek) currentPage.mingguan = totalWeek;
+            const currentWeekData = weeklyData.slice((currentPage.mingguan - 1) * ROWS_PER_PAGE, currentPage.mingguan * ROWS_PER_PAGE);
+
+            const totalMonth = Math.ceil(monthlyData.length / ROWS_PER_PAGE) || 1;
+            if (currentPage.bulanan > totalMonth) currentPage.bulanan = totalMonth;
+            const currentMonthData = monthlyData.slice((currentPage.bulanan - 1) * ROWS_PER_PAGE, currentPage.bulanan * ROWS_PER_PAGE);
+            
+            const renderBody = (bodyElem, data, emptyMsg, type) => {
+                if(data.length === 0) {
+                    bodyElem.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-500">${emptyMsg}</td></tr>`;
+                    return;
+                }
+                bodyElem.innerHTML = data.map(d => `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-medium"><button onclick="openHistoryModal('${d.name}', '${type}')" class="text-blue-600 hover:underline">${d.name}</button></td>
+                        <td class="px-4 py-3">${d.process}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">${d.period}</td>
+                        <td class="px-4 py-3 text-center text-teal-600 font-semibold">${d.avgAtt}</td>
+                        <td class="px-4 py-3 text-center text-blue-600 font-semibold">${d.avgSkill}</td>
+                        <td class="px-4 py-3 text-center text-purple-600 font-semibold">${d.avgProd}</td>
+                        <td class="px-4 py-3 text-center text-yellow-600 font-semibold">${d.avgQual}</td>
+                        <td class="px-4 py-3 text-center font-bold bg-gray-100">${d.avgTotal}</td>
+                        <td class="px-4 py-3 text-center">${d.statusHtml}</td>
+                    </tr>
+                `).join('');
+            };
+
+            renderBody(wBody, currentWeekData, "Belum ada data rekap mingguan.", 'weekly');
+            renderPagination('paginationMingguan', currentPage.mingguan, totalWeek, 'mingguan');
+            
+            renderBody(mBody, currentMonthData, "Belum ada data rekap bulanan.", 'monthly');
+            renderPagination('paginationBulanan', currentPage.bulanan, totalMonth, 'bulanan');
+        }
+
+        function updateDashboard() {
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            const fName = document.getElementById('filterName').value;
+            const fLine = document.getElementById('filterLine').value;
+
+            let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
+
+            if (startDate) filtered = filtered.filter(ev => ev.date >= startDate);
+            if (endDate) filtered = filtered.filter(ev => ev.date <= endDate);
+            if (fName) filtered = filtered.filter(ev => ev.name === fName);
+            if (fLine) {
+                const mpInLine = manpowers.filter(m => m.line === fLine).map(m => m.name);
+                filtered = filtered.filter(ev => mpInLine.includes(ev.name));
+            }
+
+            drawCategoryCharts(filtered);
+            drawTrendChart(filtered);
+            drawComparisonChart(filtered);
+        }
+
+        function drawCategoryCharts(data) {
+            let sCount = [0,0,0,0], pCount = [0,0,0,0], qCount = [0,0,0,0];
+            data.forEach(d => {
+                if(d.skill >= 1 && d.skill <= 4) sCount[d.skill - 1]++;
+                if(d.prod >= 1 && d.prod <= 4) pCount[d.prod - 1]++;
+                if(d.qual >= 1 && d.qual <= 4) qCount[d.qual - 1]++;
+            });
+
+            const createPie = (canvasId, counts, customLabels) => {
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                if (charts[canvasId]) charts[canvasId].destroy();
+                charts[canvasId] = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: customLabels, datasets: [{ data: counts, backgroundColor: chartColors, borderWidth: 1 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font:{size:10} } } } }
+                });
+            };
+
+            createPie('skillChart', sCount, skillLabels);
+            createPie('prodChart', pCount, prodLabels);
+            createPie('qualChart', qCount, qualLabels);
+        }
+
+        function drawTrendChart(data) {
+            const timeframe = document.getElementById('trendTimeframe').value;
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (charts.trend) charts.trend.destroy();
+
+            const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+            let grouped = {};
+            
+            sortedData.forEach(d => {
+                let key = d.date;
+                const dt = new Date(d.date);
+                if (timeframe === 'monthly') {
+                    key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+                } else if (timeframe === 'weekly') {
+                    const firstDayOfYear = new Date(dt.getFullYear(), 0, 1);
+                    const weekNum = Math.ceil((((dt - firstDayOfYear) / 86400000) + firstDayOfYear.getDay() + 1) / 7);
+                    key = `${dt.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+                }
+
+                if(!grouped[key]) grouped[key] = { s:0, p:0, q:0, count:0 };
+                grouped[key].s += d.skill; grouped[key].p += d.prod; grouped[key].q += d.qual; grouped[key].count++;
+            });
+
+            const labels = Object.keys(grouped);
+            charts.trend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Avg Skill', data: labels.map(k => (grouped[k].s / grouped[k].count).toFixed(2)), borderColor: '#3b82f6', tension: 0.3 },
+                        { label: 'Avg Prod', data: labels.map(k => (grouped[k].p / grouped[k].count).toFixed(2)), borderColor: '#8b5cf6', tension: 0.3 },
+                        { label: 'Avg Qual', data: labels.map(k => (grouped[k].q / grouped[k].count).toFixed(2)), borderColor: '#f59e0b', tension: 0.3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 4, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function drawComparisonChart(filteredEvals) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            if (charts.comparison) charts.comparison.destroy();
+
+            let allDates = [...new Set(filteredEvals.map(e => e.date))].sort((a,b) => new Date(a) - new Date(b));
+            let activeManpowers = [...new Set(filteredEvals.map(e => e.name))];
+
+            let datasets = activeManpowers.map((mpName, index) => {
+                let dataPoints = allDates.map(date => {
+                    let match = evaluations.filter(e => e.name === mpName && e.date === date);
+                    if (match.length === 0) return null;
+                    let sum = 0;
+                    match.forEach(m => {
+                        let att = getAttScore(m.attendance);
+                        let s = m.attendance === 'Hadir' ? (parseFloat(m.skill) || 0) : 0;
+                        let p = m.attendance === 'Hadir' ? (parseFloat(m.prod) || 0) : 0;
+                        let q = m.attendance === 'Hadir' ? (parseFloat(m.qual) || 0) : 0;
+                        sum += (att + s + p + q) / 4;
+                    });
+                    return (sum / match.length).toFixed(2);
+                });
+                let color = linePalette[index % linePalette.length];
+                return { label: mpName, data: dataPoints, borderColor: color, tension: 0.2, spanGaps: true };
+            });
+
+            charts.comparison = new Chart(ctx, {
+                type: 'line',
+                data: { labels: allDates, datasets: datasets },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: -2, max: 4, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function initSampleData() {
+            manpowers = [
+                { id: 'MP1', nik: '1001', name: 'Budi Santoso', process: 'Welding', line: 'Line 1', customer: 'Toyota', shift: 'Shift A', entryDate: '2026-05-01' },
+                { id: 'MP2', nik: '1002', name: 'Ahmad Faisal', process: 'Painting', line: 'Line 2', customer: 'Honda', shift: 'Shift B', entryDate: '2026-05-01' },
+                { id: 'MP3', nik: '1003', name: 'Siti Aminah', process: 'Assembly', line: 'Line 3', customer: 'Suzuki', shift: 'Shift A', entryDate: '2026-05-15' },
+                { id: 'MP4', nik: '1004', name: 'Joko Widodo', process: 'Checking', line: 'Line 4', customer: 'Yamaha', shift: 'Shift B', entryDate: '2026-06-01' },
+                { id: 'MP5', nik: '1005', name: 'Dewi Sartika', process: 'Packing', line: 'Line 5', customer: 'Daihatsu', shift: 'Non Shift', entryDate: '2026-06-15' }
+            ];
+
+            evaluations = [];
+            const today = new Date();
+            
+            for (let i = 120; i >= 0; i--) {
+                let d = new Date(today);
+                d.setDate(d.getDate() - i);
+                
+                if (d.getDay() === 0) continue; 
+
+                let dateStr = d.toISOString().split('T')[0];
+                let progressFactor = (120 - i) / 120;
+
+                manpowers.forEach((mp, index) => {
+                    let isPresent = Math.random() > 0.08; 
+                    
+                    if (isPresent) {
+                        let baseVal = 2 + Math.floor(progressFactor * 2) + (index % 2);
+                        let skillVal = Math.min(4, Math.max(1, baseVal));
+                        let prodVal = Math.min(4, Math.max(1, baseVal - (Math.random() > 0.7 ? 1 : 0)));
+                        let qualVal = Math.min(4, Math.max(1, baseVal));
+
+                        evaluations.push({
+                            id: `EV_${dateStr}_${mp.id}`,
+                            date: dateStr,
+                            name: mp.name,
+                            process: mp.process,
+                            attendance: 'Hadir',
+                            skill: skillVal,
+                            prod: prodVal,
+                            qual: qualVal,
+                            note: skillVal >= 3 ? 'Mandiri dan sesuai SOP' : 'Perlu pendampingan',
+                            mentor: `Mentor ${mp.line}`
+                        });
+                    } else {
+                        evaluations.push({
+                            id: `EV_${dateStr}_${mp.id}`,
+                            date: dateStr,
+                            name: mp.name,
+                            process: mp.process,
+                            attendance: 'Tidak Hadir',
+                            skill: 0,
+                            prod: 0,
+                            qual: 0,
+                            note: 'Izin / Sakit',
+                            mentor: `Mentor ${mp.line}`
+                        });
+                    }
+                });
+            }
+            saveData();
+        }
+    </script>
+</body>
+</html>
