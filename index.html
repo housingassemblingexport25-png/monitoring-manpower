@@ -725,11 +725,19 @@
 
         function handleLogin(e) {
             e.preventDefault();
-            const u = document.getElementById('loginUser').value.trim();
+            const u = document.getElementById('loginUser').value.trim().toLowerCase();
             const p = document.getElementById('loginPass').value.trim();
             const errDiv = document.getElementById('loginError');
 
-            const found = accounts.find(acc => acc.username === u && acc.pass === p);
+            console.log("Data akun saat ini:", accounts); // Untuk dicek di Console browser (F12)
+
+            if (!accounts || accounts.length === 0) {
+                errDiv.innerText = "Database akun belum dimuat. Harap refresh halaman (Ctrl+F5).";
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            const found = accounts.find(acc => acc.username.trim().toLowerCase() === u && acc.pass.trim() === p);
             if (found) {
                 currentUser = found;
                 localStorage.setItem('mp_current_user', JSON.stringify(currentUser));
