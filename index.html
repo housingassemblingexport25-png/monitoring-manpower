@@ -723,13 +723,12 @@ async function loadCloudData() {
             }
         }
 
-     async function handleLogin(e) {
+async function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.trim().toLowerCase();
             const p = document.getElementById('loginPass').value.trim();
             const errDiv = document.getElementById('loginError');
 
-            // Pastikan data dimuat jika variabel accounts masih kosong
             if (!accounts || accounts.length === 0) {
                 await loadCloudData();
             }
