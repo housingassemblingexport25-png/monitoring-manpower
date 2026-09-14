@@ -696,7 +696,7 @@
             try {
                 let response = await fetch(CLOUD_API_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Mencegah preflight CORS error di Apps Script
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify(payload)
                 });
                 let result = await response.json();
@@ -767,7 +767,7 @@
                 renderAccountsTable();
             } else {
                 badge.innerHTML = `Login sebagai: <b>${currentUser.name}</b> (Akses Terbatas: ${currentUser.line})`;
-                btnAddMp.style.display = 'none';
+                btnAddMp.style.display = 'flex'; // Diubah menjadi flex agar user line dapat tombol Add Manpower
                 adminSection.classList.add('hidden');
             }
 
@@ -1170,19 +1170,28 @@
         }
 
         function openManpowerModal(id = null) {
-            if (currentUser.role === 'user') {
-                showMessage("Akses Ditolak", "Hanya Administrator yang dapat menambah atau mengubah Master Data Manpower.", "error");
-                return;
-            }
-
             const form = document.getElementById('manpowerForm');
             form.reset();
             document.getElementById('mpId').value = '';
             document.getElementById('mpModalTitle').innerText = "Add New Manpower";
 
+            const lineSelect = document.getElementById('mpLine');
+
+            // Jika user line yang login, kunci pilihan line sesuai linenya sendiri
+            if (currentUser && currentUser.role === 'user') {
+                lineSelect.value = currentUser.line;
+                lineSelect.disabled = true;
+            } else {
+                lineSelect.disabled = false;
+            }
+
             if (id) {
                 const mp = manpowers.find(m => m.id === id);
                 if (mp) {
+                    if (currentUser.role === 'user' && mp.line !== currentUser.line) {
+                        showMessage("Akses Ditolak", "Anda tidak memiliki izin mengubah data manpower line lain.", "error");
+                        return;
+                    }
                     document.getElementById('mpId').value = mp.id;
                     document.getElementById('mpNik').value = mp.nik;
                     document.getElementById('mpName').value = mp.name;
@@ -1208,16 +1217,17 @@
 
         function handleManpowerSubmit(e) {
             e.preventDefault();
-            if (currentUser.role === 'user') return;
 
             const id = document.getElementById('mpId').value;
+            const assignedLine = currentUser.role === 'user' ? currentUser.line : document.getElementById('mpLine').value;
+
             const newData = {
                 id: id || 'MP' + Date.now(),
                 nik: document.getElementById('mpNik').value,
                 name: document.getElementById('mpName').value,
                 entryDate: document.getElementById('mpEntryDate').value,
                 process: document.getElementById('mpProcess').value,
-                line: document.getElementById('mpLine').value,
+                line: assignedLine,
                 customer: document.getElementById('mpCustomer').value,
                 shift: document.getElementById('mpShift').value,
             };
@@ -1238,8 +1248,11 @@
 
         function deleteManpower(id) {
             if (currentUser.role === 'user') {
-                showMessage("Akses Ditolak", "Hanya Administrator yang dapat menghapus Master Data Manpower.", "error");
-                return;
+                const mp = manpowers.find(m => m.id === id);
+                if (!mp || mp.line !== currentUser.line) {
+                    showMessage("Akses Ditolak", "Anda hanya dapat menghapus manpower di line Anda.", "error");
+                    return;
+                }
             }
 
             showMessage("Konfirmasi Hapus", "Hapus Manpower ini?", "confirm", () => {
@@ -1452,10 +1465,8 @@
                     <td class="px-4 py-3 text-center">${mp.shift}</td>
                     <td class="px-4 py-3"><span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">${tenureText}</span></td>
                     <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                        ${currentUser.role === 'admin' ? `
-                            <button onclick="openManpowerModal('${mp.id}')" class="text-blue-500 hover:text-blue-700" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteManpower('${mp.id}')" class="text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button>
-                        ` : '<span class="text-xs text-gray-400 italic">Read-only</span>'}
+                        <button onclick="openManpowerModal('${mp.id}')" class="text-blue-500 hover:text-blue-700" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteManpower('${mp.id}')" class="text-red-500 hover:text-red-700" title="Delete"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 mpBody.appendChild(tr);
