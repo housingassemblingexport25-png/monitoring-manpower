@@ -1651,26 +1651,27 @@
             renderPagination('paginationBulanan', currentPage.bulanan, totalMonth, 'bulanan');
         }
 
-        function updateDashboard() {
-            const startDate = document.getElementById('filterStartDate').value;
-            const endDate = document.getElementById('filterEndDate').value;
-            const fName = document.getElementById('filterName').value;
-            const fLine = document.getElementById('filterLine').value;
+ function updateDashboard() {
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    const fName = document.getElementById('filterName').value;
+    const fLine = document.getElementById('filterLine').value;
 
-            let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
+    let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
 
-            if (startDate) filtered = filtered.filter(ev => ev.date >= startDate);
-            if (endDate) filtered = filtered.filter(ev => ev.date <= endDate);
-            if (fName) filtered = filtered.filter(ev => ev.name === fName);
-            if (fLine) {
-                const mpInLine = manpowers.filter(m => m.line === fLine).map(m => m.name);
-                filtered = filtered.filter(ev => mpInLine.includes(ev.name));
-            }
+    // Pastikan perbandingan string tanggal konsisten YYYY-MM-DD
+    if (startDate) filtered = filtered.filter(ev => ev.date >= startDate);
+    if (endDate) filtered = filtered.filter(ev => ev.date <= endDate);
+    if (fName) filtered = filtered.filter(ev => ev.name === fName);
+    if (fLine) {
+        const mpInLine = manpowers.filter(m => m.line === fLine).map(m => m.name);
+        filtered = filtered.filter(ev => mpInLine.includes(ev.name));
+    }
 
-            drawCategoryCharts(filtered);
-            drawTrendChart(filtered);
-            drawComparisonChart(filtered);
-        }
+    drawCategoryCharts(filtered);
+    drawTrendChart(filtered);
+    drawComparisonChart(filtered);
+}
 
         function drawCategoryCharts(data) {
             let sCount = [0,0,0,0], pCount = [0,0,0,0], qCount = [0,0,0,0];
