@@ -310,14 +310,14 @@
             <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-lg font-bold border-b pb-3 mb-4 flex items-center"><i class="fas fa-chart-line mr-2 text-blue-500"></i> Dashboard Analitik</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Tanggal Awal</label>
-                        <input type="date" id="filterStartDate" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Tanggal Akhir</label>
-                        <input type="date" id="filterEndDate" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                <!-- Filter Dashboard diperbarui menjadi satu input tanggal -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs text-gray-500 mb-1">Periode Tanggal (Pilih Tanggal Tertentu atau Kosongkan untuk Semua)</label>
+                        <div class="flex gap-2">
+                            <input type="date" id="filterSingleDate" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                            <button onclick="document.getElementById('filterSingleDate').value=''; updateDashboard();" class="px-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded text-xs border transition" title="Reset Tanggal">Clear</button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Nama Manpower</label>
@@ -330,9 +330,6 @@
                         <select id="filterLine" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
                             <option value="">Semua Line</option>
                         </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="resetFilters()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded text-sm font-medium border transition">Reset Filter</button>
                     </div>
                 </div>
 
@@ -1084,8 +1081,9 @@
         }
 
         function resetFilters() {
-            document.getElementById('filterStartDate').value = '';
-            document.getElementById('filterEndDate').value = '';
+            const singleDate = document.getElementById('filterSingleDate');
+            if (singleDate) singleDate.value = '';
+
             document.getElementById('filterName').value = '';
             if (currentUser.role === 'admin') {
                 document.getElementById('filterLine').value = '';
@@ -1651,14 +1649,13 @@
         }
 
         function updateDashboard() {
-            const startDateInput = document.getElementById('filterStartDate').value;
-            const endDateInput = document.getElementById('filterEndDate').value;
-            const fName = document.getElementById('filterName').value;
-            const fLine = document.getElementById('filterLine').value;
+            const singleDateInput = document.getElementById('filterSingleDate') ? document.getElementById('filterSingleDate').value : '';
+            const fName = document.getElementById('filterName') ? document.getElementById('filterName').value : '';
+            const fLine = document.getElementById('filterLine') ? document.getElementById('filterLine').value : '';
 
             let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
 
-            // Fungsi helper untuk merubah berbagai format input date menjadi string YYYY-MM-DD yang aman
+            // Normalisasi format tanggal jika diperlukan
             const normalizeDate = (val) => {
                 if (!val) return '';
                 if (val.includes('/')) {
@@ -1670,15 +1667,11 @@
                 return val;
             };
 
-            const startDate = normalizeDate(startDateInput);
-            const endDate = normalizeDate(endDateInput);
+            const targetDate = normalizeDate(singleDateInput);
 
-            if (startDate) {
-                filtered = filtered.filter(ev => ev.date >= startDate);
-            }
-            
-            if (endDate) {
-                filtered = filtered.filter(ev => ev.date <= endDate);
+            // Filter berdasarkan satu tanggal spesifik yang dipilih
+            if (targetDate) {
+                filtered = filtered.filter(ev => ev.date === targetDate);
             }
 
             if (fName) {
