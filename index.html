@@ -1224,15 +1224,26 @@
             setTimeout(() => modal.classList.add('hidden'), 200);
         }
 
-        function handleManpowerSubmit(e) {
+function handleManpowerSubmit(e) {
             e.preventDefault();
 
             const id = document.getElementById('mpId').value;
+            const nikInput = document.getElementById('mpNik').value.trim();
             const assignedLine = currentUser.role === 'user' ? currentUser.line : document.getElementById('mpLine').value;
+
+            // Pengecekan NIK ganda: Cek apakah sudah ada NIK yang sama di data manpowers
+            const existingManpower = manpowers.find(m => m.nik === nikInput);
+            if (existingManpower) {
+                // Jika ID berbeda, berarti NIK ini sudah dimiliki oleh manpower lain
+                if (!id || existingManpower.id !== id) {
+                    showMessage("Gagal Disimpan", `NIK "${nikInput}" sudah terdaftar atas nama ${existingManpower.name}. Silakan gunakan NIK yang berbeda.`, "error");
+                    return;
+                }
+            }
 
             const newData = {
                 id: id || 'MP' + Date.now(),
-                nik: document.getElementById('mpNik').value,
+                nik: nikInput,
                 name: document.getElementById('mpName').value,
                 entryDate: document.getElementById('mpEntryDate').value,
                 process: document.getElementById('mpProcess').value,
@@ -1254,7 +1265,6 @@
             closeManpowerModal();
             refreshAllUI();
         }
-
         function deleteManpower(id) {
             if (currentUser.role === 'user') {
                 const mp = manpowers.find(m => m.id === id);
