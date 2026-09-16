@@ -1651,7 +1651,7 @@
             renderPagination('paginationBulanan', currentPage.bulanan, totalMonth, 'bulanan');
         }
 
- function updateDashboard() {
+function updateDashboard() {
     const startDate = document.getElementById('filterStartDate').value;
     const endDate = document.getElementById('filterEndDate').value;
     const fName = document.getElementById('filterName').value;
@@ -1659,9 +1659,21 @@
 
     let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
 
-    // Pastikan perbandingan string tanggal konsisten YYYY-MM-DD
-    if (startDate) filtered = filtered.filter(ev => ev.date >= startDate);
-    if (endDate) filtered = filtered.filter(ev => ev.date <= endDate);
+    // Normalisasi perbandingan tanggal agar aman dari perbedaan zona waktu komputer klien
+    if (startDate) {
+        filtered = filtered.filter(ev => {
+            // Ubah ke format waktu tengah malam murni (YYYY-MM-DD)
+            return ev.date >= startDate;
+        });
+    }
+    
+    if (endDate) {
+        filtered = filtered.filter(ev => {
+            // Memastikan tanggal akhir mencakup sampai akhir hari tersebut secara aman
+            return ev.date <= endDate;
+        });
+    }
+
     if (fName) filtered = filtered.filter(ev => ev.name === fName);
     if (fLine) {
         const mpInLine = manpowers.filter(m => m.line === fLine).map(m => m.name);
