@@ -686,6 +686,21 @@
 
         function getAttScore(attendance) { return attendance === 'Hadir' ? 3 : -2; }
 
+        // Fungsi Helper untuk format tanggal menjadi: Hari, Tanggal Bulan Tahun (Contoh: Selasa, 15 September 2026)
+        function formatDateSimple(dateStr) {
+            if (!dateStr) return '-';
+            // Cek jika format sudah berupa objek Date atau string tanggal
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr; // Jika gagal parsing, kembalikan teks aslinya
+            
+            return d.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
         async function loadCloudData() {
             try {
                 let response = await fetch(CLOUD_API_URL + "?action=getData");
@@ -1341,7 +1356,7 @@
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-gray-50 transition";
                     tr.innerHTML = `
-                        <td class="px-4 py-3">${ev.date}</td>
+                        <td class="px-4 py-3">${formatDateSimple(ev.date)}</td>
                         <td class="px-4 py-3 text-center font-bold">${attScore}</td>
                         <td class="px-4 py-3 text-center font-bold text-blue-600">${s}</td>
                         <td class="px-4 py-3 text-center font-bold text-purple-600">${p}</td>
@@ -1469,7 +1484,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 transition";
                 tr.innerHTML = `
-                    <td class="px-4 py-3 whitespace-nowrap">${ev.date}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${formatDateSimple(ev.date)}</td>
                     <td class="px-4 py-3 font-medium">
                         <button onclick="openHistoryModal('${ev.name}', 'daily')" class="text-blue-600 hover:underline text-left">${ev.name}</button>
                     </td>
