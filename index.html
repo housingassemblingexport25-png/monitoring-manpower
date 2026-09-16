@@ -689,9 +689,8 @@
         // Fungsi Helper untuk format tanggal menjadi: Hari, Tanggal Bulan Tahun (Contoh: Selasa, 15 September 2026)
         function formatDateSimple(dateStr) {
             if (!dateStr) return '-';
-            // Cek jika format sudah berupa objek Date atau string tanggal
             const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return dateStr; // Jika gagal parsing, kembalikan teks aslinya
+            if (isNaN(d.getTime())) return dateStr;
             
             return d.toLocaleDateString('id-ID', {
                 weekday: 'long',
@@ -1651,39 +1650,50 @@
             renderPagination('paginationBulanan', currentPage.bulanan, totalMonth, 'bulanan');
         }
 
-function updateDashboard() {
-    const startDate = document.getElementById('filterStartDate').value;
-    const endDate = document.getElementById('filterEndDate').value;
-    const fName = document.getElementById('filterName').value;
-    const fLine = document.getElementById('filterLine').value;
+        function updateDashboard() {
+            const startDateInput = document.getElementById('filterStartDate').value;
+            const endDateInput = document.getElementById('filterEndDate').value;
+            const fName = document.getElementById('filterName').value;
+            const fLine = document.getElementById('filterLine').value;
 
-    let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
+            let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
 
-    // Normalisasi perbandingan tanggal agar aman dari perbedaan zona waktu komputer klien
-    if (startDate) {
-        filtered = filtered.filter(ev => {
-            // Ubah ke format waktu tengah malam murni (YYYY-MM-DD)
-            return ev.date >= startDate;
-        });
-    }
-    
-    if (endDate) {
-        filtered = filtered.filter(ev => {
-            // Memastikan tanggal akhir mencakup sampai akhir hari tersebut secara aman
-            return ev.date <= endDate;
-        });
-    }
+            // Fungsi helper untuk merubah berbagai format input date menjadi string YYYY-MM-DD yang aman
+            const normalizeDate = (val) => {
+                if (!val) return '';
+                if (val.includes('/')) {
+                    const parts = val.split('/');
+                    if (parts.length === 3) {
+                        return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                    }
+                }
+                return val;
+            };
 
-    if (fName) filtered = filtered.filter(ev => ev.name === fName);
-    if (fLine) {
-        const mpInLine = manpowers.filter(m => m.line === fLine).map(m => m.name);
-        filtered = filtered.filter(ev => mpInLine.includes(ev.name));
-    }
+            const startDate = normalizeDate(startDateInput);
+            const endDate = normalizeDate(endDateInput);
 
-    drawCategoryCharts(filtered);
-    drawTrendChart(filtered);
-    drawComparisonChart(filtered);
-}
+            if (startDate) {
+                filtered = filtered.filter(ev => ev.date >= startDate);
+            }
+            
+            if (endDate) {
+                filtered = filtered.filter(ev => ev.date <= endDate);
+            }
+
+            if (fName) {
+                filtered = filtered.filter(ev => ev.name === fName);
+            }
+            
+            if (fLine) {
+                const mpInLine = manpowers.filter(m => m.line === fLine).map(m => m.name);
+                filtered = filtered.filter(ev => mpInLine.includes(ev.name));
+            }
+
+            drawCategoryCharts(filtered);
+            drawTrendChart(filtered);
+            drawComparisonChart(filtered);
+        }
 
         function drawCategoryCharts(data) {
             let sCount = [0,0,0,0], pCount = [0,0,0,0], qCount = [0,0,0,0];
