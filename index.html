@@ -310,14 +310,13 @@
             <section class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-lg font-bold border-b pb-3 mb-4 flex items-center"><i class="fas fa-chart-line mr-2 text-blue-500"></i> Dashboard Analitik</h2>
                 
-                <!-- Filter Dashboard diperbarui menjadi satu input tanggal -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="md:col-span-2">
-                        <label class="block text-xs text-gray-500 mb-1">Periode Tanggal (Pilih Tanggal Tertentu atau Kosongkan untuk Semua)</label>
-                        <div class="flex gap-2">
-                            <input type="date" id="filterSingleDate" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
-                            <button onclick="document.getElementById('filterSingleDate').value=''; updateDashboard();" class="px-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded text-xs border transition" title="Reset Tanggal">Clear</button>
-                        </div>
+                <!-- Filter Dashboard: Filter Tanggal diganti dengan Filter Proses -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Proses</label>
+                        <select id="filterProcess" class="w-full border rounded p-2 text-sm focus:ring focus:ring-blue-200" onchange="updateDashboard()">
+                            <option value="">Semua Proses</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Nama Manpower</label>
@@ -381,7 +380,7 @@
                         <!-- PENCARIAN HARIAN -->
                         <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <input type="text" id="searchHarianNama" placeholder="Cari Nama..." oninput="currentPage.harian=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
-                            <input type="text" id="searchHarianTanggal" placeholder="Cari Tanggal (YYYY-MM-DD)..." oninput="currentPage.harian=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <input type="text" id="searchHarianTanggal" placeholder="Cari Tanggal..." oninput="currentPage.harian=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
                             <button onclick="exportTableToExcel('tableHarian', 'Data_Evaluasi_Harian', 'LAPORAN EVALUASI HARIAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center justify-center transition shadow-sm whitespace-nowrap">
                                 <i class="fas fa-file-excel mr-1.5"></i> Download Excel
                             </button>
@@ -683,7 +682,7 @@
 
         function getAttScore(attendance) { return attendance === 'Hadir' ? 3 : -2; }
 
-        // Fungsi Helper untuk format tanggal menjadi: Hari, Tanggal Bulan Tahun (Contoh: Selasa, 15 September 2026)
+        // Fungsi Helper untuk format tanggal lengkap: Hari, Tanggal Bulan Tahun (Contoh: Rabu, 16 September 2026)
         function formatDateSimple(dateStr) {
             if (!dateStr) return '-';
             const d = new Date(dateStr);
@@ -694,6 +693,18 @@
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
+            });
+        }
+
+        // Fungsi Helper untuk format tanggal pendek pada grafik (Contoh: 16 Sep)
+        function formatDateShort(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            
+            return d.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short'
             });
         }
 
@@ -1032,23 +1043,29 @@
         }
 
         function renderFilterDropdowns() {
+            const fProcess = document.getElementById('filterProcess');
             const fName = document.getElementById('filterName');
             const fLine = document.getElementById('filterLine');
-            if (!fName || !fLine) return;
+            if (!fProcess || !fName || !fLine) return;
             
+            const currentProcess = fProcess.value;
             const currentName = fName.value;
             const currentLine = fLine.value;
 
+            fProcess.innerHTML = '<option value="">Semua Proses</option>';
             fName.innerHTML = '<option value="">Semua Manpower</option>';
             fLine.innerHTML = '<option value="">Semua Line</option>';
 
             const availableMp = getFilteredManpowers();
+            const uniqueProcesses = [...new Set(availableMp.map(m => m.process).filter(Boolean))];
             const uniqueNames = [...new Set(availableMp.map(m => m.name))];
             const uniqueLines = [...new Set(availableMp.map(m => m.line))];
 
+            uniqueProcesses.forEach(pr => fProcess.add(new Option(pr, pr)));
             uniqueNames.forEach(n => fName.add(new Option(n, n)));
             uniqueLines.forEach(l => fLine.add(new Option(l, l)));
 
+            fProcess.value = currentProcess;
             fName.value = currentName;
 
             if (currentUser && currentUser.role === 'user') {
@@ -1081,8 +1098,8 @@
         }
 
         function resetFilters() {
-            const singleDate = document.getElementById('filterSingleDate');
-            if (singleDate) singleDate.value = '';
+            const fProcess = document.getElementById('filterProcess');
+            if (fProcess) fProcess.value = '';
 
             document.getElementById('filterName').value = '';
             if (currentUser.role === 'admin') {
@@ -1462,7 +1479,8 @@
 
             let filteredEval = getFilteredEvaluations().filter(ev => {
                 const matchName = ev.name.toLowerCase().includes(sNameHarian);
-                const matchDate = ev.date.toLowerCase().includes(sTglHarian);
+                const formattedDateStr = formatDateSimple(ev.date).toLowerCase();
+                const matchDate = ev.date.toLowerCase().includes(sTglHarian) || formattedDateStr.includes(sTglHarian);
                 return matchName && matchDate;
             }).sort((a,b) => new Date(b.date) - new Date(a.date));
 
@@ -1649,29 +1667,14 @@
         }
 
         function updateDashboard() {
-            const singleDateInput = document.getElementById('filterSingleDate') ? document.getElementById('filterSingleDate').value : '';
+            const fProcess = document.getElementById('filterProcess') ? document.getElementById('filterProcess').value : '';
             const fName = document.getElementById('filterName') ? document.getElementById('filterName').value : '';
             const fLine = document.getElementById('filterLine') ? document.getElementById('filterLine').value : '';
 
             let filtered = getFilteredEvaluations().filter(ev => ev.attendance === 'Hadir');
 
-            // Normalisasi format tanggal jika diperlukan
-            const normalizeDate = (val) => {
-                if (!val) return '';
-                if (val.includes('/')) {
-                    const parts = val.split('/');
-                    if (parts.length === 3) {
-                        return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-                    }
-                }
-                return val;
-            };
-
-            const targetDate = normalizeDate(singleDateInput);
-
-            // Filter berdasarkan satu tanggal spesifik yang dipilih
-            if (targetDate) {
-                filtered = filtered.filter(ev => ev.date === targetDate);
+            if (fProcess) {
+                filtered = filtered.filter(ev => ev.process === fProcess);
             }
 
             if (fName) {
@@ -1734,15 +1737,18 @@
                 grouped[key].s += d.skill; grouped[key].p += d.prod; grouped[key].q += d.qual; grouped[key].count++;
             });
 
-            const labels = Object.keys(grouped);
+            const rawKeys = Object.keys(grouped);
+            // Mengubah label tanggal grafik menjadi lebih pendek (Tanggal dan Bulan saja)
+            const labels = rawKeys.map(k => timeframe === 'daily' ? formatDateShort(k) : k);
+
             charts.trend = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Avg Skill', data: labels.map(k => (grouped[k].s / grouped[k].count).toFixed(2)), borderColor: '#3b82f6', tension: 0.3 },
-                        { label: 'Avg Prod', data: labels.map(k => (grouped[k].p / grouped[k].count).toFixed(2)), borderColor: '#8b5cf6', tension: 0.3 },
-                        { label: 'Avg Qual', data: labels.map(k => (grouped[k].q / grouped[k].count).toFixed(2)), borderColor: '#f59e0b', tension: 0.3 }
+                        { label: 'Avg Skill', data: rawKeys.map(k => (grouped[k].s / grouped[k].count).toFixed(2)), borderColor: '#3b82f6', tension: 0.3 },
+                        { label: 'Avg Prod', data: rawKeys.map(k => (grouped[k].p / grouped[k].count).toFixed(2)), borderColor: '#8b5cf6', tension: 0.3 },
+                        { label: 'Avg Qual', data: rawKeys.map(k => (grouped[k].q / grouped[k].count).toFixed(2)), borderColor: '#f59e0b', tension: 0.3 }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 4, ticks: { stepSize: 1 } } } }
@@ -1754,6 +1760,8 @@
             if (charts.comparison) charts.comparison.destroy();
 
             let allDates = [...new Set(filteredEvals.map(e => e.date))].sort((a,b) => new Date(a) - new Date(b));
+            // Label sumbu X grafik perbandingan menggunakan format tanggal pendek
+            let shortDateLabels = allDates.map(d => formatDateShort(d));
             let activeManpowers = [...new Set(filteredEvals.map(e => e.name))];
 
             let datasets = activeManpowers.map((mpName, index) => {
@@ -1776,7 +1784,7 @@
 
             charts.comparison = new Chart(ctx, {
                 type: 'line',
-                data: { labels: allDates, datasets: datasets },
+                data: { labels: shortDateLabels, datasets: datasets },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: -2, max: 4, ticks: { stepSize: 1 } } } }
             });
         }
