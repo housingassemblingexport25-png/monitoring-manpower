@@ -378,11 +378,17 @@
             <section class="space-y-8">
                 <!-- Tabel Evaluasi Harian -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <h2 class="font-bold text-gray-800"><i class="fas fa-table mr-2 text-blue-500"></i> Data Evaluasi Harian</h2>
-                        <button onclick="exportTableToExcel('tableHarian', 'Data_Evaluasi_Harian', 'LAPORAN EVALUASI HARIAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
-                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
-                        </button>
+                        
+                        <!-- PENCARIAN HARIAN -->
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <input type="text" id="searchHarianNama" placeholder="Cari Nama..." oninput="currentPage.harian=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <input type="text" id="searchHarianTanggal" placeholder="Cari Tanggal (YYYY-MM-DD)..." oninput="currentPage.harian=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <button onclick="exportTableToExcel('tableHarian', 'Data_Evaluasi_Harian', 'LAPORAN EVALUASI HARIAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center justify-center transition shadow-sm whitespace-nowrap">
+                                <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table id="tableHarian" class="w-full text-sm text-left">
@@ -408,11 +414,17 @@
 
                 <!-- Tabel Rekap Mingguan -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <h2 class="font-bold text-gray-800"><i class="fas fa-calendar-week mr-2 text-blue-500"></i> Rekap Evaluasi Mingguan (Rata-rata)</h2>
-                        <button onclick="exportTableToExcel('tableMingguan', 'Rekap_Mingguan', 'REKAPITULASI EVALUASI MINGGUAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
-                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
-                        </button>
+                        
+                        <!-- PENCARIAN MINGGUAN -->
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <input type="text" id="searchMingguanNama" placeholder="Cari Nama..." oninput="currentPage.mingguan=1; renderSummaryTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <input type="text" id="searchMingguanPeriode" placeholder="Cari Periode Minggu..." oninput="currentPage.mingguan=1; renderSummaryTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <button onclick="exportTableToExcel('tableMingguan', 'Rekap_Mingguan', 'REKAPITULASI EVALUASI MINGGUAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center justify-center transition shadow-sm whitespace-nowrap">
+                                <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table id="tableMingguan" class="w-full text-sm text-left">
@@ -437,11 +449,17 @@
 
                 <!-- Tabel Rekap Bulanan -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <h2 class="font-bold text-gray-800"><i class="fas fa-calendar-alt mr-2 text-blue-500"></i> Rekap Evaluasi Bulanan (Rata-rata)</h2>
-                        <button onclick="exportTableToExcel('tableBulanan', 'Rekap_Bulanan', 'REKAPITULASI EVALUASI BULANAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
-                            <i class="fas fa-file-excel mr-1.5"></i> Download Excel
-                        </button>
+                        
+                        <!-- PENCARIAN BULANAN -->
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <input type="text" id="searchBulananNama" placeholder="Cari Nama..." oninput="currentPage.bulanan=1; renderSummaryTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <input type="text" id="searchBulananPeriode" placeholder="Cari Periode Bulan..." oninput="currentPage.bulanan=1; renderSummaryTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <button onclick="exportTableToExcel('tableBulanan', 'Rekap_Bulanan', 'REKAPITULASI EVALUASI BULANAN')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center justify-center transition shadow-sm whitespace-nowrap">
+                                <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table id="tableBulanan" class="w-full text-sm text-left">
@@ -466,22 +484,27 @@
 
                 <!-- Tabel Manpower -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <h2 class="font-bold text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i> Master Data Manpower</h2>
-        
-        <!-- Grup Tombol Aksi (Tampil untuk Admin & User Line) -->
-        <div class="flex items-center space-x-2">
-            <!-- Tombol Tambah Manpower Ekstra -->
-            <button onclick="openManpowerModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
-                <i class="fas fa-plus mr-1.5"></i> Add Manpower
-            </button>
-            
-            <button onclick="exportTableToExcel('tableManpower', 'Master_Data_Manpower', 'MASTER DATA MANPOWER')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm">
-                <i class="fas fa-file-excel mr-1.5"></i> Download Excel
-            </button>
-        </div>
-    </div>
-    <div class="overflow-x-auto">
+                    <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <h2 class="font-bold text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i> Master Data Manpower</h2>
+                        
+                        <!-- PENCARIAN MASTER MANPOWER -->
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <input type="text" id="searchManpowerNama" placeholder="Cari Nama..." oninput="currentPage.manpower=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <input type="text" id="searchManpowerLine" placeholder="Cari Line..." oninput="currentPage.manpower=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                            <input type="text" id="searchManpowerShift" placeholder="Cari Shift..." oninput="currentPage.manpower=1; renderTables();" class="border rounded px-3 py-1.5 text-sm focus:ring focus:ring-blue-200 bg-white">
+                        </div>
+
+                        <!-- Grup Tombol Aksi -->
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openManpowerModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm whitespace-nowrap">
+                                <i class="fas fa-plus mr-1.5"></i> Add Manpower
+                            </button>
+                            <button onclick="exportTableToExcel('tableManpower', 'Master_Data_Manpower', 'MASTER DATA MANPOWER')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center transition shadow-sm whitespace-nowrap">
+                                <i class="fas fa-file-excel mr-1.5"></i> Download Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
                         <table id="tableManpower" class="w-full text-sm text-left">
                             <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b">
                                 <tr>
@@ -776,7 +799,7 @@
                 renderAccountsTable();
             } else {
                 badge.innerHTML = `Login sebagai: <b>${currentUser.name}</b> (Akses Terbatas: ${currentUser.line})`;
-                btnAddMp.style.display = 'flex'; // Diubah menjadi flex agar user line dapat tombol Add Manpower
+                btnAddMp.style.display = 'flex';
                 adminSection.classList.add('hidden');
             }
 
@@ -1186,7 +1209,6 @@
 
             const lineSelect = document.getElementById('mpLine');
 
-            // Jika user line yang login, kunci pilihan line sesuai linenya sendiri
             if (currentUser && currentUser.role === 'user') {
                 lineSelect.value = currentUser.line;
                 lineSelect.disabled = true;
@@ -1224,17 +1246,15 @@
             setTimeout(() => modal.classList.add('hidden'), 200);
         }
 
-function handleManpowerSubmit(e) {
+        function handleManpowerSubmit(e) {
             e.preventDefault();
 
             const id = document.getElementById('mpId').value;
             const nikInput = document.getElementById('mpNik').value.trim();
             const assignedLine = currentUser.role === 'user' ? currentUser.line : document.getElementById('mpLine').value;
 
-            // Pengecekan NIK ganda: Cek apakah sudah ada NIK yang sama di data manpowers
             const existingManpower = manpowers.find(m => m.nik === nikInput);
             if (existingManpower) {
-                // Jika ID berbeda, berarti NIK ini sudah dimiliki oleh manpower lain
                 if (!id || existingManpower.id !== id) {
                     showMessage("Gagal Disimpan", `NIK "${nikInput}" sudah terdaftar atas nama ${existingManpower.name}. Silakan gunakan NIK yang berbeda.`, "error");
                     return;
@@ -1265,6 +1285,7 @@ function handleManpowerSubmit(e) {
             closeManpowerModal();
             refreshAllUI();
         }
+
         function deleteManpower(id) {
             if (currentUser.role === 'user') {
                 const mp = manpowers.find(m => m.id === id);
@@ -1423,7 +1444,16 @@ function handleManpowerSubmit(e) {
             const evBody = document.getElementById('evalTableBody');
             evBody.innerHTML = "";
             
-            const filteredEval = getFilteredEvaluations().sort((a,b) => new Date(b.date) - new Date(a.date));
+            // --- FILTER PENCARIAN HARIAN ---
+            const sNameHarian = document.getElementById('searchHarianNama').value.toLowerCase();
+            const sTglHarian = document.getElementById('searchHarianTanggal').value.toLowerCase();
+
+            let filteredEval = getFilteredEvaluations().filter(ev => {
+                const matchName = ev.name.toLowerCase().includes(sNameHarian);
+                const matchDate = ev.date.toLowerCase().includes(sTglHarian);
+                return matchName && matchDate;
+            }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
             const totalHarian = Math.ceil(filteredEval.length / ROWS_PER_PAGE) || 1;
             if (currentPage.harian > totalHarian) currentPage.harian = totalHarian;
             const startHarian = (currentPage.harian - 1) * ROWS_PER_PAGE;
@@ -1458,13 +1488,25 @@ function handleManpowerSubmit(e) {
                 evBody.appendChild(tr);
             });
             if(filteredEval.length === 0) {
-                evBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-500">Belum ada data evaluasi.</td></tr>`;
+                evBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-500">Tidak ada data evaluasi yang cocok.</td></tr>`;
             }
             renderPagination('paginationHarian', currentPage.harian, totalHarian, 'harian');
 
             const mpBody = document.getElementById('manpowerTableBody');
             mpBody.innerHTML = "";
-            const filteredMp = getFilteredManpowers();
+
+            // --- FILTER PENCARIAN MASTER MANPOWER ---
+            const sNameMp = document.getElementById('searchManpowerNama').value.toLowerCase();
+            const sLineMp = document.getElementById('searchManpowerLine').value.toLowerCase();
+            const sShiftMp = document.getElementById('searchManpowerShift').value.toLowerCase();
+
+            const filteredMp = getFilteredManpowers().filter(mp => {
+                const matchName = mp.name.toLowerCase().includes(sNameMp);
+                const matchLine = mp.line.toLowerCase().includes(sLineMp);
+                const matchShift = mp.shift.toLowerCase().includes(sShiftMp);
+                return matchName && matchLine && matchShift;
+            });
+
             const totalMp = Math.ceil(filteredMp.length / ROWS_PER_PAGE) || 1;
             if (currentPage.manpower > totalMp) currentPage.manpower = totalMp;
             const startMp = (currentPage.manpower - 1) * ROWS_PER_PAGE;
@@ -1491,7 +1533,7 @@ function handleManpowerSubmit(e) {
                 mpBody.appendChild(tr);
             });
             if(filteredMp.length === 0) {
-                mpBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">Belum ada data manpower.</td></tr>`;
+                mpBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">Tidak ada data manpower yang cocok.</td></tr>`;
             }
             renderPagination('paginationManpower', currentPage.manpower, totalMp, 'manpower');
         }
@@ -1545,8 +1587,19 @@ function handleManpowerSubmit(e) {
             const wBody = document.getElementById('weeklyTableBody');
             const mBody = document.getElementById('monthlyTableBody');
             
-            const weeklyData = groupEvaluations('weekly');
-            const monthlyData = groupEvaluations('monthly');
+            // --- FILTER PENCARIAN MINGGUAN ---
+            const sNameWeek = document.getElementById('searchMingguanNama').value.toLowerCase();
+            const sPerWeek = document.getElementById('searchMingguanPeriode').value.toLowerCase();
+            const weeklyData = groupEvaluations('weekly').filter(d => {
+                return d.name.toLowerCase().includes(sNameWeek) && d.period.toLowerCase().includes(sPerWeek);
+            });
+
+            // --- FILTER PENCARIAN BULANAN ---
+            const sNameMonth = document.getElementById('searchBulananNama').value.toLowerCase();
+            const sPerMonth = document.getElementById('searchBulananPeriode').value.toLowerCase();
+            const monthlyData = groupEvaluations('monthly').filter(d => {
+                return d.name.toLowerCase().includes(sNameMonth) && d.period.toLowerCase().includes(sPerMonth);
+            });
 
             const totalWeek = Math.ceil(weeklyData.length / ROWS_PER_PAGE) || 1;
             if (currentPage.mingguan > totalWeek) currentPage.mingguan = totalWeek;
@@ -1576,10 +1629,10 @@ function handleManpowerSubmit(e) {
                 `).join('');
             };
 
-            renderBody(wBody, currentWeekData, "Belum ada data rekap mingguan.", 'weekly');
+            renderBody(wBody, currentWeekData, "Tidak ada rekap mingguan yang cocok.", 'weekly');
             renderPagination('paginationMingguan', currentPage.mingguan, totalWeek, 'mingguan');
             
-            renderBody(mBody, currentMonthData, "Belum ada data rekap bulanan.", 'monthly');
+            renderBody(mBody, currentMonthData, "Tidak ada rekap bulanan yang cocok.", 'monthly');
             renderPagination('paginationBulanan', currentPage.bulanan, totalMonth, 'bulanan');
         }
 
