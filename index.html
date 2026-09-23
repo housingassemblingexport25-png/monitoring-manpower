@@ -229,7 +229,7 @@
                             </div>
                         </div>
 
-                        <!-- INPUT TARGET & OUTPUT CIRCUIT (DILETAKKAN SEBELUM PRODUCTIVITY) -->
+                        <!-- INPUT TARGET & OUTPUT CIRCUIT -->
                         <div class="bg-white p-4 rounded-lg border border-gray-200">
                             <label class="block text-sm font-bold mb-3 text-gray-700 flex items-center">
                                 <i class="fas fa-calculator mr-2 text-indigo-500"></i> Target & Output Circuit
@@ -358,10 +358,17 @@
 
                 <!-- GRAFIK CIRCUIT TARGET VS OUTPUT -->
                 <div class="border rounded-lg p-4 bg-gray-50 mb-6">
-                    <h3 class="text-sm font-semibold mb-2 text-gray-600 flex items-center">
-                        <i class="fas fa-microchip mr-2 text-indigo-500"></i> Total Target Circuit vs Output Circuit
-                    </h3>
-                    <div class="w-full h-64 relative">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-semibold text-gray-600 flex items-center">
+                            <i class="fas fa-microchip mr-2 text-indigo-500"></i> Total Target Circuit vs Output Circuit
+                        </h3>
+                        <select id="circuitTimeframe" class="border rounded p-1.5 text-sm bg-white focus:ring focus:ring-blue-200 font-medium" onchange="updateDashboard()">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="w-full h-80 relative">
                         <canvas id="circuitChart"></canvas>
                     </div>
                 </div>
@@ -394,10 +401,11 @@
                         <div class="w-full h-80 relative"><canvas id="trendChart"></canvas></div>
                     </div>
                     
+                    <!-- GRAFIK PERBANDINGAN TOTAL POIN TIAP MANPOWER -->
                     <div class="border rounded-lg p-4 bg-gray-50">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-semibold text-gray-600">Perbandingan Rata-rata Antar Manpower</h3>
-                            <span class="text-xs text-gray-500">Skor Total (Absen, Skill, Prod, Qual)</span>
+                            <h3 class="text-sm font-semibold text-gray-600">Total Poin Per Manpower</h3>
+                            <span class="text-xs text-gray-500">Total Poin Akumulasi (Absensi + Skill + Productivity + Quality)</span>
                         </div>
                         <div class="w-full h-80 relative"><canvas id="comparisonChart"></canvas></div>
                     </div>
@@ -1763,42 +1771,75 @@
             drawComparisonChart(filtered);
         }
 
+        // GRAFIK TARGET VS OUTPUT CIRCUIT
         function drawCircuitChart(data) {
+            const timeframe = document.getElementById('circuitTimeframe').value;
             const ctx = document.getElementById('circuitChart').getContext('2d');
             if (charts.circuit) charts.circuit.destroy();
 
-            let totalTarget = 0;
-            let totalOutput = 0;
+            const sortedData = [...data].sort((a,b) => new Date(a.date) - new Date(b.date));
+            let grouped = {};
 
-            data.forEach(d => {
-                totalTarget += parseFloat(d.targetCircuit) || 0;
-                totalOutput += parseFloat(d.outputCircuit) || 0;
+            sortedData.forEach(d => {
+                let key = d.date;
+                const dt = new Date(d.date);
+                if (timeframe === 'monthly') {
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+                    key = `${monthNames[dt.getMonth()]} ${dt.getFullYear()}`;
+                } else if (timeframe === 'weekly') {
+                    const firstDayOfYear = new Date(dt.getFullYear(), 0, 1);
+                    const pastDaysOfYear = (dt - firstDayOfYear) / 86400000;
+                    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+                    key = `W${weekNum} ${dt.getFullYear()}`;
+                }
+
+                if (!grouped[key]) {
+                    grouped[key] = { target: 0, output: 0, sortKey: dt.getTime() };
+                }
+                grouped[key].target += parseFloat(d.targetCircuit) || 0;
+                grouped[key].output += parseFloat(d.outputCircuit) || 0;
             });
+
+            const rawKeys = Object.keys(grouped);
+            const labels = rawKeys.map(k => timeframe === 'daily' ? formatDateShort(k) : k);
+            const targetData = rawKeys.map(k => grouped[k].target);
+            const outputData = rawKeys.map(k => grouped[k].output);
 
             charts.circuit = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Target Circuit', 'Output Circuit'],
-                    datasets: [{
-                        label: 'Jumlah Circuit',
-                        data: [totalTarget, totalOutput],
-                        backgroundColor: ['#6366f1', '#10b981'],
-                        borderRadius: 6,
-                        barThickness: 50
-                    }]
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Target Circuit',
+                            data: targetData,
+                            backgroundColor: '#6366f1',
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.6
+                        },
+                        {
+                            label: 'Output Circuit',
+                            data: outputData,
+                            backgroundColor: '#10b981',
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.6
+                        }
+                    ]
                 },
                 plugins: [ChartDataLabels],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: { position: 'top', labels: { font: { size: 12, weight: '500' } } },
                         datalabels: {
                             anchor: 'end',
                             align: 'top',
                             color: '#374151',
-                            font: { weight: 'bold', size: 12 },
-                            formatter: (value) => value.toLocaleString('id-ID')
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (value) => value > 0 ? value.toLocaleString('id-ID') : ''
                         }
                     },
                     scales: {
@@ -1894,36 +1935,77 @@
             });
         }
 
+        // GRAFIK TOTAL POIN TIAP MANPOWER (SUMBU X: NAMA MANPOWER, SUMBU Y: TOTAL POIN)
         function drawComparisonChart(filteredEvals) {
             const ctx = document.getElementById('comparisonChart').getContext('2d');
             if (charts.comparison) charts.comparison.destroy();
 
-            let allDates = [...new Set(filteredEvals.map(e => e.date))].sort((a,b) => new Date(a) - new Date(b));
-            let shortDateLabels = allDates.map(d => formatDateShort(d));
-            let activeManpowers = [...new Set(filteredEvals.map(e => e.name))];
+            // Ambil seluruh data evaluasi sesuai filter line/user
+            let allEvals = getFilteredEvaluations();
 
-            let datasets = activeManpowers.map((mpName, index) => {
-                let dataPoints = allDates.map(date => {
-                    let match = evaluations.filter(e => e.name === mpName && e.date === date);
-                    if (match.length === 0) return null;
-                    let sum = 0;
-                    match.forEach(m => {
-                        let att = getAttScore(m.attendance);
-                        let s = m.attendance === 'Hadir' ? (parseFloat(m.skill) || 0) : 0;
-                        let p = m.attendance === 'Hadir' ? (parseFloat(m.prod) || 0) : 0;
-                        let q = m.attendance === 'Hadir' ? (parseFloat(m.qual) || 0) : 0;
-                        sum += (att + s + p + q) / 4;
-                    });
-                    return (sum / match.length).toFixed(2);
-                });
-                let color = linePalette[index % linePalette.length];
-                return { label: mpName, data: dataPoints, borderColor: color, tension: 0.2, spanGaps: true };
+            // Jika ada filter nama/proses dari dashboard, sesuaikan
+            const fProcess = document.getElementById('filterProcess') ? document.getElementById('filterProcess').value : '';
+            const fName = document.getElementById('filterName') ? document.getElementById('filterName').value : '';
+
+            if (fProcess) allEvals = allEvals.filter(e => e.process === fProcess);
+            if (fName) allEvals = allEvals.filter(e => e.name === fName);
+
+            let manpowerScores = {};
+
+            // Mengelompokkan total poin per nama manpower
+            allEvals.forEach(e => {
+                if (!manpowerScores[e.name]) {
+                    manpowerScores[e.name] = 0;
+                }
+                let attScore = getAttScore(e.attendance);
+                let skillScore = parseFloat(e.skill) || 0;
+                let prodScore = parseFloat(e.prod) || 0;
+                let qualScore = parseFloat(e.qual) || 0;
+
+                manpowerScores[e.name] += (attScore + skillScore + prodScore + qualScore);
             });
 
+            let labels = Object.keys(manpowerScores);
+            let totals = Object.values(manpowerScores);
+
             charts.comparison = new Chart(ctx, {
-                type: 'line',
-                data: { labels: shortDateLabels, datasets: datasets },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: -2, max: 4, ticks: { stepSize: 1 } } } }
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Poin Kumulatif',
+                        data: totals,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6,
+                        barThickness: 40
+                    }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#1e40af',
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (value) => value
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f3f4f6' },
+                            title: { display: true, text: 'Total Poin', font: { weight: 'bold' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            title: { display: true, text: 'Nama Manpower', font: { weight: 'bold' } }
+                        }
+                    }
+                }
             });
         }
     </script>
