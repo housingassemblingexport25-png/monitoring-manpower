@@ -401,13 +401,29 @@
                         <div class="w-full h-80 relative"><canvas id="trendChart"></canvas></div>
                     </div>
                     
-                    <!-- GRAFIK PERBANDINGAN TOTAL POIN TIAP MANPOWER -->
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-semibold text-gray-600">Total Poin Per Manpower</h3>
-                            <span class="text-xs text-gray-500">Total Poin Akumulasi (Absensi + Skill + Productivity + Quality)</span>
+                    <!-- DUA GRAFIK PIVOT: TOP 10 MP & BOTTOM 10 MP -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- TOP 10 MANPOWER -->
+                        <div class="border rounded-lg p-4 bg-gray-50">
+                            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                                <h3 class="text-sm font-semibold text-emerald-700 flex items-center">
+                                    <i class="fas fa-trophy mr-2 text-amber-500"></i> Top 10 Manpower (Poin Terbanyak)
+                                </h3>
+                                <span class="text-xs text-gray-500">Akumulasi Poin</span>
+                            </div>
+                            <div class="w-full h-80 relative"><canvas id="topMpChart"></canvas></div>
                         </div>
-                        <div class="w-full h-80 relative"><canvas id="comparisonChart"></canvas></div>
+
+                        <!-- BOTTOM 10 MANPOWER -->
+                        <div class="border rounded-lg p-4 bg-gray-50">
+                            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                                <h3 class="text-sm font-semibold text-rose-700 flex items-center">
+                                    <i class="fas fa-exclamation-triangle mr-2 text-rose-500"></i> Bottom 10 Manpower (Poin Terendah)
+                                </h3>
+                                <span class="text-xs text-gray-500">Akumulasi Poin</span>
+                            </div>
+                            <div class="w-full h-80 relative"><canvas id="bottomMpChart"></canvas></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -706,7 +722,7 @@
         let manpowers = [];
         let evaluations = [];
         
-        let charts = { circuit: null, skill: null, prod: null, qual: null, trend: null, comparison: null };
+        let charts = { circuit: null, skill: null, prod: null, qual: null, trend: null, topMp: null, bottomMp: null };
 
         let ROWS_PER_PAGE = 10;
         let currentPage = { harian: 1, mingguan: 1, bulanan: 1, manpower: 1 };
@@ -1768,7 +1784,7 @@
             drawCircuitChart(filtered);
             drawCategoryCharts(filtered);
             drawTrendChart(filtered);
-            drawComparisonChart(filtered);
+            drawPivotCharts();
         }
 
         // GRAFIK TARGET VS OUTPUT CIRCUIT
@@ -1935,49 +1951,55 @@
             });
         }
 
-        // GRAFIK TOTAL POIN TIAP MANPOWER (SUMBU X: NAMA MANPOWER, SUMBU Y: TOTAL POIN)
-        function drawComparisonChart(filteredEvals) {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            if (charts.comparison) charts.comparison.destroy();
-
-            // Ambil seluruh data evaluasi sesuai filter line/user
+        // GRAFIK DUA PIVOT: TOP 10 DAN BOTTOM 10 MANPOWER
+        function drawPivotCharts() {
             let allEvals = getFilteredEvaluations();
 
-            // Jika ada filter nama/proses dari dashboard, sesuaikan
             const fProcess = document.getElementById('filterProcess') ? document.getElementById('filterProcess').value : '';
             const fName = document.getElementById('filterName') ? document.getElementById('filterName').value : '';
 
             if (fProcess) allEvals = allEvals.filter(e => e.process === fProcess);
             if (fName) allEvals = allEvals.filter(e => e.name === fName);
 
-            let manpowerScores = {};
+            let mpMap = {};
 
-            // Mengelompokkan total poin per nama manpower
             allEvals.forEach(e => {
-                if (!manpowerScores[e.name]) {
-                    manpowerScores[e.name] = 0;
+                if (!mpMap[e.name]) {
+                    mpMap[e.name] = 0;
                 }
                 let attScore = getAttScore(e.attendance);
                 let skillScore = parseFloat(e.skill) || 0;
                 let prodScore = parseFloat(e.prod) || 0;
                 let qualScore = parseFloat(e.qual) || 0;
 
-                manpowerScores[e.name] += (attScore + skillScore + prodScore + qualScore);
+                mpMap[e.name] += (attScore + skillScore + prodScore + qualScore);
             });
 
-            let labels = Object.keys(manpowerScores);
-            let totals = Object.values(manpowerScores);
+            let sortedList = Object.keys(mpMap).map(name => ({
+                name: name,
+                total: mpMap[name]
+            })).sort((a, b) => b.total - a.total);
 
-            charts.comparison = new Chart(ctx, {
+            // 10 MP POIN TERBANYAK
+            let top10 = sortedList.slice(0, 10);
+            
+            // 10 MP POIN TERENDAH (Diurutkan dari terendah)
+            let bottom10 = [...sortedList].sort((a, b) => a.total - b.total).slice(0, 10);
+
+            // RENDER GRAFIK TOP 10
+            const ctxTop = document.getElementById('topMpChart').getContext('2d');
+            if (charts.topMp) charts.topMp.destroy();
+
+            charts.topMp = new Chart(ctxTop, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: top10.map(item => item.name),
                     datasets: [{
-                        label: 'Total Poin Kumulatif',
-                        data: totals,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 6,
-                        barThickness: 40
+                        label: 'Total Poin',
+                        data: top10.map(item => item.total),
+                        backgroundColor: '#10b981',
+                        borderRadius: 4,
+                        barThickness: 24
                     }]
                 },
                 plugins: [ChartDataLabels],
@@ -1989,21 +2011,51 @@
                         datalabels: {
                             anchor: 'end',
                             align: 'top',
-                            color: '#1e40af',
-                            font: { weight: 'bold', size: 11 },
-                            formatter: (value) => value
+                            color: '#065f46',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (val) => val
                         }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f3f4f6' },
-                            title: { display: true, text: 'Total Poin', font: { weight: 'bold' } }
-                        },
-                        x: {
-                            grid: { display: false },
-                            title: { display: true, text: 'Nama Manpower', font: { weight: 'bold' } }
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // RENDER GRAFIK BOTTOM 10
+            const ctxBottom = document.getElementById('bottomMpChart').getContext('2d');
+            if (charts.bottomMp) charts.bottomMp.destroy();
+
+            charts.bottomMp = new Chart(ctxBottom, {
+                type: 'bar',
+                data: {
+                    labels: bottom10.map(item => item.name),
+                    datasets: [{
+                        label: 'Total Poin',
+                        data: bottom10.map(item => item.total),
+                        backgroundColor: '#ef4444',
+                        borderRadius: 4,
+                        barThickness: 24
+                    }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#991b1b',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (val) => val
                         }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                     }
                 }
             });
