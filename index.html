@@ -1176,14 +1176,27 @@
         }
 
         function toggleEvalInputs(isHadir) {
-            const metrics = document.getElementById('evaluationMetrics');
-            const inputs = metrics.querySelectorAll('input[type="radio"], input[type="number"]');
-            inputs.forEach(input => {
-                input.disabled = !isHadir;
-                if(!isHadir && input.type === 'radio') input.checked = false;
-            });
-            metrics.style.opacity = isHadir ? '1' : '0.5';
+    const metrics = document.getElementById('evaluationMetrics');
+    const inputs = metrics.querySelectorAll('input[type="radio"], input[type="number"]');
+    
+    inputs.forEach(input => {
+        input.disabled = !isHadir;
+        if (!isHadir) {
+            if (input.type === 'radio') {
+                input.checked = false;
+            }
         }
+    });
+
+    // Otomatis set Target & Output Circuit ke 0 jika Tidak Hadir
+    if (!isHadir) {
+        document.getElementById('evalTargetCircuit').value = 0;
+        document.getElementById('evalOutputCircuit').value = 0;
+        calculateProductivityScale(); // Update badge persentase & skala produktivitas
+    }
+
+    metrics.style.opacity = isHadir ? '1' : '0.5';
+}
 
         function handleEvaluationSubmit(e) {
             e.preventDefault();
@@ -1221,13 +1234,13 @@
                 qual = parseInt(q.value);
             }
 
-            const targetVal = parseFloat(document.getElementById('evalTargetCircuit').value);
-            const outputVal = parseFloat(document.getElementById('evalOutputCircuit').value);
+const targetVal = parseFloat(document.getElementById('evalTargetCircuit').value) || 0;
+const outputVal = parseFloat(document.getElementById('evalOutputCircuit').value) || 0;
 
-            if (isNaN(targetVal) || isNaN(outputVal)) {
-                showMessage("Peringatan", "Target Circuit dan Output Circuit wajib diisi!", "error");
-                return;
-            }
+if (attendance === 'Hadir' && (isNaN(targetVal) || isNaN(outputVal) || targetVal <= 0)) {
+    showMessage("Peringatan", "Target Circuit dan Output Circuit wajib diisi dengan angka valid jika Manpower Hadir!", "error");
+    return;
+}
 
             const newData = {
                 id: id || 'EV' + Date.now(),
